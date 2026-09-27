@@ -1,0 +1,4351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NEXUS SCAN — Tall Order Measurement Quest</title>
+<meta name="description" content="A futuristic bio-scanning game. Scan your face, prove your height at multiple distances, and unlock your personalised style profile.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   DESIGN TOKENS
+   ============================================================ */
+:root {
+  --bg:            #050a14;
+  --bg2:           #080e1c;
+  --bg3:           #0b1428;
+  --cyan:          #00d4ff;
+  --cyan-dim:      #007da0;
+  --cyan-glow:     rgba(0,212,255,0.18);
+  --violet:        #8b5cf6;
+  --violet-dim:    #5730c7;
+  --violet-glow:   rgba(139,92,246,0.2);
+  --gold:          #f59e0b;
+  --gold-dim:      #a06b00;
+  --gold-glow:     rgba(245,158,11,0.18);
+  --magenta:       #ff2d78;
+  --magenta-glow:  rgba(255,45,120,0.22);
+  --green:         #10b981;
+  --text:          #e0eaff;
+  --text-dim:      #5a7090;
+  --text-mid:      #8fa8c8;
+  --glass-bg:      rgba(8,14,28,0.72);
+  --glass-border:  rgba(0,212,255,0.15);
+  --radius:        12px;
+  --radius-lg:     20px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+#particleBg {
+  position: fixed; inset: 0;
+  pointer-events: none; z-index: 0;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 10%, rgba(0,212,255,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 80% 80%, rgba(139,92,246,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 30% at 50% 50%, rgba(8,14,28,0.9) 0%, transparent 100%);
+  pointer-events: none; z-index: 0;
+}
+
+#app {
+  position: relative; z-index: 1;
+  display: flex; flex-direction: column; align-items: center;
+  min-height: 100vh; padding-bottom: 60px;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.nx-header {
+  width: 100%; padding: 0 24px; height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(5,10,20,0.88);
+  border-bottom: 1px solid var(--glass-border);
+  backdrop-filter: blur(18px);
+  position: sticky; top: 0; z-index: 100;
+}
+
+.nx-logo { display: flex; align-items: center; gap: 12px; }
+.nx-logo-icon {
+  width: 38px; height: 38px;
+  border: 2px solid var(--cyan); border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.15rem;
+  box-shadow: 0 0 14px var(--cyan-glow), inset 0 0 8px var(--cyan-glow);
+  animation: pulse-border 3s ease-in-out infinite;
+}
+@keyframes pulse-border {
+  0%,100% { box-shadow: 0 0 14px var(--cyan-glow), inset 0 0 8px var(--cyan-glow); }
+  50%      { box-shadow: 0 0 28px rgba(0,212,255,0.4), inset 0 0 14px rgba(0,212,255,0.2); }
+}
+.nx-logo-wordmark { display: flex; flex-direction: column; }
+.nx-logo-text {
+  font-family: 'Orbitron', monospace; font-weight: 900;
+  font-size: 1.05rem; letter-spacing: 3px;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.nx-logo-sub {
+  font-size: 0.58rem; letter-spacing: 2.5px;
+  color: var(--text-dim); text-transform: uppercase; margin-top: 1px;
+}
+
+.hud-pills { display: flex; gap: 8px; align-items: center; }
+.hud-pill {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: 999px; padding: 6px 14px;
+  backdrop-filter: blur(8px); transition: border-color 0.3s;
+}
+.hud-pill:hover { border-color: rgba(0,212,255,0.35); }
+.hud-pill-icon { font-size: 1rem; line-height: 1; }
+.hud-pill-val {
+  font-family: 'Orbitron', monospace; font-weight: 700;
+  font-size: 0.8rem; color: var(--gold); min-width: 46px;
+}
+.hud-pill-val.cyan   { color: var(--cyan); }
+.hud-pill-val.violet { color: var(--violet); }
+.xp-wrap { display: flex; flex-direction: column; gap: 3px; }
+.xp-bar-track {
+  width: 76px; height: 3px;
+  background: rgba(245,158,11,0.15); border-radius: 2px; overflow: hidden;
+}
+.xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+  border-radius: 2px; width: 0%;
+  transition: width 0.7s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 0 6px rgba(245,158,11,0.5);
+}
+
+/* ============================================================
+   STEPPER
+   ============================================================ */
+.nx-stepper {
+  display: flex; align-items: center;
+  margin: 28px auto 0; max-width: 480px; width: 100%; padding: 0 28px;
+}
+.nx-step {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 8px; flex: 1; position: relative;
+}
+.nx-step-ring {
+  width: 44px; height: 44px; border-radius: 50%;
+  border: 2px solid var(--text-dim); background: var(--bg2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Orbitron', monospace; font-weight: 700; font-size: 0.9rem;
+  color: var(--text-dim); transition: all 0.45s ease; position: relative;
+}
+.nx-step-ring::before {
+  content: ''; position: absolute; inset: -7px; border-radius: 50%;
+  border: 1px solid transparent; transition: all 0.45s ease;
+}
+.nx-step.active .nx-step-ring {
+  border-color: var(--cyan); color: var(--cyan);
+  background: rgba(0,212,255,0.06);
+  box-shadow: 0 0 20px var(--cyan-glow), 0 0 40px rgba(0,212,255,0.08);
+}
+.nx-step.active .nx-step-ring::before {
+  border-color: rgba(0,212,255,0.22);
+  animation: spin-ring 4s linear infinite;
+}
+@keyframes spin-ring { to { transform: rotate(360deg); } }
+.nx-step.done .nx-step-ring {
+  border-color: var(--green); color: var(--green);
+  background: rgba(16,185,129,0.08);
+  box-shadow: 0 0 14px rgba(16,185,129,0.22);
+}
+.nx-step-label {
+  font-size: 0.62rem; letter-spacing: 1.8px; text-transform: uppercase;
+  color: var(--text-dim); transition: color 0.4s; white-space: nowrap;
+}
+.nx-step.active .nx-step-label { color: var(--cyan); }
+.nx-step.done  .nx-step-label { color: var(--green); }
+
+.nx-step-beam {
+  flex: 1; height: 1px; margin-bottom: 22px;
+  background: linear-gradient(90deg, var(--text-dim) 0%, transparent 100%);
+  position: relative; overflow: hidden;
+}
+.nx-step-beam::after {
+  content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  animation: beam-travel 3s linear infinite;
+}
+@keyframes beam-travel { from { left: -100%; } to { left: 100%; } }
+
+/* ============================================================
+   QUEST CARD
+   ============================================================ */
+.nx-quest {
+  width: min(700px, calc(100% - 32px)); margin: 20px auto 0;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg); padding: 18px 22px 16px;
+  backdrop-filter: blur(16px); position: relative; overflow: hidden;
+}
+.nx-quest::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), var(--violet), transparent);
+  animation: shimmer-line 3s ease-in-out infinite;
+}
+@keyframes shimmer-line { 0%,100% { opacity: 0.5; } 50% { opacity: 1; } }
+.nx-quest-kicker {
+  font-family: 'Orbitron', monospace; font-size: 0.56rem;
+  letter-spacing: 3px; color: var(--cyan); text-transform: uppercase;
+  display: block; margin-bottom: 6px;
+}
+.nx-quest-title {
+  font-family: 'Orbitron', monospace; font-size: 1.05rem; font-weight: 700;
+  color: var(--text); margin-bottom: 5px;
+}
+.nx-quest-copy { font-size: 0.79rem; color: var(--text-dim); line-height: 1.5; }
+.nx-quest-mission {
+  position: absolute; top: 16px; right: 18px;
+  font-family: 'Orbitron', monospace; font-size: 0.62rem;
+  color: var(--violet); letter-spacing: 1px;
+}
+
+/* ============================================================
+   MAIN ARCADE LAYOUT
+   ============================================================ */
+.nx-arcade {
+  display: flex; gap: 20px; flex-wrap: wrap;
+  justify-content: center; max-width: 1060px;
+  width: 100%; padding: 24px 16px 0;
+}
+.nx-booth { display: flex; gap: 12px; }
+
+/* Video wrap */
+.nx-video-wrap {
+  position: relative; width: 420px; max-width: 100%;
+  aspect-ratio: 4 / 3; min-height: 315px;
+  background: #000; border-radius: 16px; overflow: hidden;
+  border: 1px solid rgba(0,212,255,0.22);
+  box-shadow: 0 0 40px rgba(0,212,255,0.06), 0 0 0 1px rgba(0,212,255,0.06);
+}
+.nx-video-wrap::before, .nx-video-wrap::after {
+  content: ''; position: absolute;
+  width: 22px; height: 22px; border-color: var(--cyan);
+  border-style: solid; z-index: 10;
+}
+.nx-video-wrap::before {
+  top: 10px; left: 10px;
+  border-width: 2px 0 0 2px; border-radius: 4px 0 0 0;
+  animation: corner-pulse 2s ease-in-out infinite;
+}
+.nx-video-wrap::after {
+  bottom: 10px; right: 10px;
+  border-width: 0 2px 2px 0; border-radius: 0 0 4px 0;
+  animation: corner-pulse 2s ease-in-out infinite 1s;
+}
+@keyframes corner-pulse {
+  0%,100% { opacity: 0.45; }
+  50%      { opacity: 1; box-shadow: 0 0 8px rgba(0,212,255,0.55); }
+}
+.nx-corner { position: absolute; width: 22px; height: 22px; z-index: 10; }
+.nx-corner.tr {
+  top: 10px; right: 10px;
+  border-top: 2px solid var(--cyan); border-right: 2px solid var(--cyan);
+  border-radius: 0 4px 0 0; animation: corner-pulse 2s ease-in-out infinite 0.5s;
+}
+.nx-corner.bl {
+  bottom: 10px; left: 10px;
+  border-bottom: 2px solid var(--cyan); border-left: 2px solid var(--cyan);
+  border-radius: 0 0 0 4px; animation: corner-pulse 2s ease-in-out infinite 1.5s;
+}
+
+video { width: 100%; height: 100%; object-fit: cover; display: block; }
+canvas.overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; border-radius: 16px; }
+canvas.nx-confetti { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; border-radius: 16px; }
+
+/* Camera Permission & Error Overlay */
+.nx-cam-overlay {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(4, 9, 20, 0.94);
+  z-index: 25; padding: 24px; border-radius: 16px;
+  backdrop-filter: blur(12px);
+  text-align: center;
+}
+.nx-cam-overlay-icon { font-size: 2.2rem; margin-bottom: 8px; }
+.nx-cam-overlay-title { font-family: 'Orbitron', monospace; font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.nx-cam-overlay-sub { font-size: 0.72rem; color: var(--text-dim); margin-bottom: 12px; max-width: 280px; line-height: 1.4; }
+
+/* Scan sweep line */
+.nx-scanline {
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  box-shadow: 0 0 12px var(--cyan), 0 0 28px rgba(0,212,255,0.4);
+  z-index: 8; pointer-events: none;
+  animation: sweep 3.2s ease-in-out infinite;
+}
+@keyframes sweep {
+  0%   { top: 0%;   opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* Status badge inside video */
+.nx-video-status {
+  position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+  background: rgba(5,10,20,0.84); border: 1px solid var(--glass-border);
+  border-radius: 999px; padding: 5px 14px; font-size: 0.72rem;
+  color: var(--text-mid); white-space: nowrap; z-index: 12;
+  backdrop-filter: blur(8px); max-width: calc(100% - 20px);
+  text-align: center; transition: color 0.3s;
+}
+.nx-video-status.win { color: var(--cyan); }
+
+/* On-camera frame status indicator */
+.nx-cam-inframe-pill {
+  position: absolute; top: 12px; right: 14px;
+  background: rgba(5,10,20,0.88);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 999px; padding: 4px 12px;
+  font-family: Orbitron, monospace; font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 0.08em; z-index: 12;
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; gap: 6px;
+  transition: all 0.25s ease;
+  pointer-events: none;
+}
+.nx-cam-inframe-pill.in {
+  border-color: rgba(0,255,200,0.65);
+  color: #00ffc8;
+  box-shadow: 0 0 14px rgba(0,255,200,0.3);
+}
+.nx-cam-inframe-pill.out {
+  border-color: rgba(255,45,120,0.65);
+  color: #ff2d78;
+  box-shadow: 0 0 14px rgba(255,45,120,0.25);
+}
+.nx-cam-inframe-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* ============================================================
+   HOLOGRAPHIC ENERGY METER
+   ============================================================ */
+.nx-meter-col {
+  width: 52px; display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end; gap: 8px;
+}
+.nx-bell {
+  font-size: 1.45rem;
+  filter: grayscale(1) brightness(0.45);
+  transition: filter 0.3s, transform 0.3s;
+}
+.nx-bell.ringing {
+  filter: none drop-shadow(0 0 8px var(--gold));
+  animation: bell-ding 0.5s ease-in-out 3;
+}
+@keyframes bell-ding {
+  0%,100% { transform: rotate(0) scale(1); }
+  25%      { transform: rotate(-22deg) scale(1.22); }
+  75%      { transform: rotate(22deg) scale(1.22); }
+}
+.nx-meter-track {
+  width: 16px; height: 280px;
+  background: rgba(0,212,255,0.04);
+  border: 1px solid rgba(0,212,255,0.18);
+  border-radius: 8px; position: relative; overflow: hidden;
+}
+.nx-meter-track::before {
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(
+    to top,
+    transparent 0px, transparent 17px,
+    rgba(0,212,255,0.07) 17px, rgba(0,212,255,0.07) 18px
+  );
+  pointer-events: none;
+}
+.nx-meter-fill {
+  position: absolute; bottom: 0; left: 0; right: 0; height: 0%;
+  background: linear-gradient(180deg, var(--cyan), var(--violet) 55%, var(--magenta));
+  border-radius: 8px; transition: height 0.12s linear;
+  box-shadow: 0 0 14px rgba(0,212,255,0.45);
+}
+.nx-meter-fill::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: var(--cyan); border-radius: 8px 8px 0 0;
+  box-shadow: 0 0 10px var(--cyan);
+}
+.nx-meter-cap {
+  width: 24px; height: 5px;
+  background: linear-gradient(90deg, var(--cyan-dim), var(--cyan));
+  border-radius: 3px; box-shadow: 0 0 8px var(--cyan-glow);
+}
+
+/* ============================================================
+   GLASS CONTROL PANEL
+   ============================================================ */
+.nx-panel {
+  width: 310px; max-width: 100%;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg); padding: 20px;
+  backdrop-filter: blur(20px); position: relative; overflow: hidden;
+}
+.nx-panel::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--cyan), var(--violet));
+}
+
+.nx-panel-heading { display: flex; align-items: center; gap: 10px; margin-bottom: 18px; }
+.nx-panel-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--cyan-dim), var(--cyan));
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Orbitron', monospace; font-weight: 700; font-size: 0.72rem;
+  color: var(--bg); flex-shrink: 0;
+}
+.nx-panel-title {
+  font-family: 'Orbitron', monospace; font-size: 0.78rem;
+  letter-spacing: 2px; color: var(--text); text-transform: uppercase;
+}
+
+.nx-label {
+  display: block; font-size: 0.66rem; letter-spacing: 1.5px;
+  text-transform: uppercase; color: var(--text-dim); margin: 14px 0 5px;
+}
+.nx-input, .nx-select {
+  width: 100%; padding: 9px 12px;
+  background: rgba(0,212,255,0.04); border: 1px solid rgba(0,212,255,0.15);
+  border-radius: 8px; font-size: 0.87rem; font-family: 'Space Grotesk', sans-serif;
+  color: var(--text); outline: none; appearance: none; -webkit-appearance: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.nx-input:focus, .nx-select:focus {
+  border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,212,255,0.08);
+}
+.nx-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%235a7090' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px;
+}
+.nx-select option { background: #0d1929; color: var(--text); }
+.nx-hint { font-size: 0.72rem; color: var(--text-dim); line-height: 1.5; margin: 6px 0; }
+
+/* Buttons */
+.nx-btn {
+  width: 100%; margin-top: 14px; padding: 11px 16px; border: none;
+  border-radius: 9px; font-family: 'Orbitron', monospace; font-weight: 700;
+  font-size: 0.76rem; letter-spacing: 1.5px; text-transform: uppercase;
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: transform 0.12s, box-shadow 0.2s;
+}
+.nx-btn:active { transform: scale(0.97); }
+.nx-btn:disabled { opacity: 0.35; cursor: not-allowed; transform: none !important; }
+.nx-btn-primary {
+  background: linear-gradient(135deg, var(--cyan-dim), var(--cyan));
+  color: var(--bg); box-shadow: 0 0 20px rgba(0,212,255,0.22);
+}
+.nx-btn-primary:not(:disabled):hover { box-shadow: 0 0 32px rgba(0,212,255,0.48); transform: translateY(-1px); }
+.nx-btn-ghost {
+  background: transparent; color: var(--text-mid);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.nx-btn-ghost:not(:disabled):hover { border-color: var(--cyan); color: var(--cyan); }
+.nx-btn-violet {
+  background: linear-gradient(135deg, var(--violet-dim), var(--violet));
+  color: #fff; box-shadow: 0 0 20px var(--violet-glow);
+}
+.nx-btn-violet:not(:disabled):hover { box-shadow: 0 0 32px rgba(139,92,246,0.52); transform: translateY(-1px); }
+.nx-btn .ripple {
+  position: absolute; border-radius: 50%;
+  background: rgba(255,255,255,0.22); transform: scale(0);
+  animation: ripple-out 0.5s linear; pointer-events: none;
+}
+@keyframes ripple-out { to { transform: scale(3.5); opacity: 0; } }
+
+/* Face stats */
+.nx-face-stats {
+  margin-top: 12px; background: rgba(0,212,255,0.04);
+  border: 1px solid rgba(0,212,255,0.12); border-radius: 10px;
+  padding: 10px 13px; font-size: 0.76rem; line-height: 1.85; display: none;
+}
+.nx-face-stat-row { display: flex; justify-content: space-between; align-items: center; }
+.nx-face-stat-row .k { color: var(--text-dim); font-size: 0.68rem; }
+.nx-face-stat-row .v { color: var(--cyan); font-family: 'Orbitron', monospace; font-size: 0.7rem; }
+
+/* Iris chips */
+.nx-iris-grid { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 8px; }
+.nx-iris-chip {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 999px; padding: 5px 10px 5px 5px;
+  cursor: pointer; font-size: 0.71rem; color: var(--text-mid);
+  transition: border-color 0.2s, background 0.2s;
+}
+.nx-iris-chip:hover { border-color: var(--cyan); background: rgba(0,212,255,0.06); }
+.nx-iris-chip.selected { border-color: var(--cyan); background: rgba(0,212,255,0.1); color: var(--text); }
+.nx-iris-orb { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.18); flex-shrink: 0; }
+
+/* ============================================================
+   PHASE 2
+   ============================================================ */
+.nx-mission-banner {
+  display: flex; gap: 12px; align-items: center;
+  background: rgba(139,92,246,0.08); border: 1px solid rgba(139,92,246,0.2);
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 14px;
+}
+.nx-mission-icon { font-size: 1.55rem; }
+.nx-mission-text b { display: block; font-family: 'Orbitron', monospace; font-size: 0.7rem; letter-spacing: 1px; color: var(--violet); margin-bottom: 3px; }
+.nx-mission-text span { font-size: 0.7rem; color: var(--text-dim); }
+
+.nx-ground-setup-card {
+  background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.22);
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 12px;
+}
+.nx-ground-title {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: 'Orbitron', monospace; font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 1px; color: var(--cyan); margin-bottom: 8px;
+}
+.nx-ground-presets {
+  display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;
+}
+.nx-preset-chip {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.12);
+  color: var(--text-mid); font-size: 0.65rem; padding: 4px 8px; border-radius: 6px;
+  cursor: pointer; transition: all 0.2s;
+}
+.nx-preset-chip:hover { border-color: var(--cyan); color: var(--text); background: rgba(0,212,255,0.08); }
+.nx-preset-chip.active {
+  background: rgba(0,212,255,0.18); border-color: var(--cyan); color: #fff; font-weight: 600;
+  box-shadow: 0 0 10px rgba(0,212,255,0.25);
+}
+.nx-ground-inputs-row {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.nx-ground-input-group { display: flex; flex-direction: column; gap: 4px; }
+.nx-ground-input-group .nx-label { font-size: 0.68rem; margin: 0; color: var(--text-dim); }
+.nx-ground-input-group .nx-input { padding: 6px 10px; font-size: 0.8rem; }
+
+.nx-validations-box {
+  background: rgba(139,92,246,0.06); border: 1px solid rgba(139,92,246,0.22);
+  border-radius: 10px; padding: 12px 14px; margin-bottom: 12px;
+}
+.nx-validations-title {
+  display: flex; justify-content: space-between; align-items: center;
+  font-family: 'Orbitron', monospace; font-size: 0.68rem; font-weight: 700;
+  letter-spacing: 1px; color: var(--violet); margin-bottom: 10px;
+}
+.nx-val-pill {
+  font-size: 0.58rem; letter-spacing: 1px; padding: 2px 7px; border-radius: 4px;
+  background: rgba(255,255,255,0.06); color: var(--text-dim); border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.3s;
+}
+.nx-val-pill.pass { background: rgba(16,185,129,0.18); color: #10b981; border-color: rgba(16,185,129,0.4); box-shadow: 0 0 10px rgba(16,185,129,0.25); }
+.nx-val-pill.fail { background: rgba(255,45,120,0.18); color: #ff2d78; border-color: rgba(255,45,120,0.4); }
+
+.nx-val-item {
+  display: flex; align-items: center; gap: 8px; font-size: 0.72rem;
+  color: var(--text-mid); margin: 6px 0; transition: color 0.25s;
+}
+.nx-val-icon {
+  display: inline-flex; justify-content: center; align-items: center;
+  width: 17px; height: 17px; border-radius: 50%; font-size: 0.65rem; font-weight: 700;
+  background: rgba(255,255,255,0.05); color: var(--text-dim); border: 1px solid rgba(255,255,255,0.12);
+  flex-shrink: 0; transition: all 0.3s;
+}
+.nx-val-item.pass { color: var(--text); }
+.nx-val-item.pass .nx-val-icon {
+  background: rgba(16,185,129,0.2); color: #10b981; border-color: #10b981;
+}
+.nx-val-item.fail { color: var(--text-dim); }
+.nx-val-item.fail .nx-val-icon {
+  background: rgba(255,45,120,0.15); color: #ff2d78; border-color: rgba(255,45,120,0.3);
+}
+
+.nx-val-hint {
+  margin-top: 10px; padding: 8px 10px; border-radius: 6px;
+  background: rgba(0,0,0,0.3); border-left: 3px solid var(--cyan);
+  font-size: 0.7rem; color: var(--cyan); line-height: 1.4; transition: all 0.3s;
+}
+
+.nx-details { border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; overflow: hidden; margin: 10px 0; }
+.nx-details summary {
+  padding: 10px 13px; cursor: pointer; font-size: 0.76rem; font-weight: 600;
+  color: var(--text-mid); background: rgba(255,255,255,0.03);
+  list-style: none; display: flex; justify-content: space-between; align-items: center;
+  transition: color 0.2s;
+}
+.nx-details summary::-webkit-details-marker { display: none; }
+.nx-details summary:hover { color: var(--cyan); }
+.nx-details summary .badge-tag {
+  font-size: 0.58rem; letter-spacing: 1px;
+  background: rgba(0,212,255,0.1); color: var(--cyan);
+  border-radius: 4px; padding: 2px 6px;
+}
+.nx-details-body { padding: 12px 13px; }
+
+.nx-auto-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.71rem; margin: 10px 0 5px; }
+.nx-auto-row span { color: var(--text-dim); }
+.nx-auto-row b    { color: var(--text-mid); font-size: 0.71rem; }
+
+/* ============================================================
+   SCOREBOARD
+   ============================================================ */
+.nx-below { display: flex; flex-direction: column; align-items: center; width: 100%; }
+
+.nx-scoreboard {
+  display: flex; gap: 14px; flex-wrap: wrap;
+  justify-content: center; margin-top: 24px; padding: 0 16px;
+}
+.nx-score-card {
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg); padding: 18px 28px; text-align: center;
+  min-width: 158px; backdrop-filter: blur(16px);
+  transition: border-color 0.4s, box-shadow 0.4s;
+}
+.nx-score-card .num {
+  font-family: 'Orbitron', monospace; font-size: 2.6rem; font-weight: 900;
+  color: var(--cyan); line-height: 1; text-shadow: 0 0 22px rgba(0,212,255,0.4);
+  transition: color 0.4s, text-shadow 0.4s;
+}
+.nx-score-card .lbl { font-size: 0.6rem; letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim); margin-top: 5px; }
+.nx-score-card.locked { border-color: var(--magenta); box-shadow: 0 0 32px rgba(255,45,120,0.22); }
+.nx-score-card.locked .num { color: var(--magenta); text-shadow: 0 0 22px rgba(255,45,120,0.55); }
+
+.nx-gallery { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 680px; margin: 16px auto 0; padding: 0 16px; }
+.nx-chip {
+  background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.24);
+  border-radius: 999px; padding: 5px 14px; font-size: 0.7rem;
+  color: var(--violet); font-family: 'Orbitron', monospace;
+  animation: chip-in 0.38s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes chip-in { from { transform: scale(0.6) translateX(20px); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.nx-badge {
+  display: none; margin: 20px auto 0;
+  background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+  color: var(--bg); padding: 16px 32px; border-radius: var(--radius-lg);
+  font-family: 'Orbitron', monospace; font-size: 1rem; font-weight: 900;
+  letter-spacing: 1px; text-align: center;
+  box-shadow: 0 0 45px rgba(245,158,11,0.4);
+  animation: badge-pop 0.65s cubic-bezier(0.34,1.56,0.64,1);
+  max-width: 480px; width: calc(100% - 32px);
+}
+@keyframes badge-pop { from { transform: scale(0.35) rotate(-6deg); opacity: 0; } 60% { transform: scale(1.07) rotate(1deg); } to { transform: scale(1); } }
+.nx-remeasure { width: min(320px, calc(100% - 32px)); margin-top: 14px; }
+
+/* Flash */
+#flashOverlay { position: fixed; inset: 0; pointer-events: none; z-index: 9999; opacity: 0; }
+#flashOverlay.fire { animation: flash-burst 0.65s ease-out forwards; }
+@keyframes flash-burst {
+  0%   { opacity: 0.75; background: rgba(245,158,11,0.22); }
+  40%  { opacity: 0.35; background: rgba(255,45,120,0.14); }
+  100% { opacity: 0; }
+}
+
+/* ============================================================
+   PHASE 3 REWARD TICKET
+   ============================================================ */
+.nx-rec-wrap { width: 100%; display: flex; flex-direction: column; align-items: center; padding: 32px 16px 0; }
+
+.nx-ticket {
+  width: min(580px, 100%);
+  background: var(--glass-bg); border: 1px solid rgba(245,158,11,0.24);
+  border-radius: 24px; padding: 28px 30px;
+  backdrop-filter: blur(24px); position: relative; overflow: hidden;
+  animation: ticket-reveal 0.7s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes ticket-reveal { from { opacity: 0; transform: translateY(28px) scale(0.96); } to { opacity: 1; transform: none; } }
+
+.nx-ticket::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(105deg, transparent 28%, rgba(245,158,11,0.05) 38%, rgba(0,212,255,0.04) 48%, rgba(139,92,246,0.04) 55%, transparent 65%);
+  background-size: 200% 200%;
+  animation: foil-shift 4.5s linear infinite;
+  border-radius: 24px; pointer-events: none;
+}
+@keyframes foil-shift { from { background-position: 0% 50%; } to { background-position: 200% 50%; } }
+.nx-ticket::after {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--gold), var(--cyan), var(--violet), transparent);
+  border-radius: 24px 24px 0 0;
+}
+
+.nx-ticket-header { margin-bottom: 20px; }
+.nx-ticket-header h2 {
+  font-family: 'Orbitron', monospace; font-size: 1.32rem; font-weight: 900;
+  background: linear-gradient(90deg, var(--gold), var(--cyan));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; margin-bottom: 5px;
+}
+.nx-ticket-header p { font-size: 0.77rem; color: var(--text-dim); }
+
+.nx-rec-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.nx-rec-row:last-of-type { border-bottom: none; }
+.nx-rec-key { font-size: 0.63rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); width: 110px; flex-shrink: 0; }
+.nx-rec-val { font-weight: 600; color: var(--text); font-size: 0.88rem; }
+.nx-iris-swatch-big {
+  width: 22px; height: 22px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.18); flex-shrink: 0;
+}
+
+.nx-rec-section { margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.06); }
+.nx-rec-section h3 {
+  font-family: 'Orbitron', monospace; font-size: 0.7rem;
+  letter-spacing: 2px; color: var(--cyan); text-transform: uppercase; margin-bottom: 10px;
+}
+.nx-rec-section ul { margin: 0; padding-left: 18px; font-size: 0.81rem; line-height: 1.72; color: var(--text-mid); }
+.nx-rec-section p  { font-size: 0.79rem; color: var(--text-dim); line-height: 1.5; margin-bottom: 12px; }
+
+.nx-swatch-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.nx-swatch { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.nx-swatch-color {
+  width: 46px; height: 46px; border-radius: 12px;
+  border: 2px solid rgba(255,255,255,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.nx-swatch:hover .nx-swatch-color { transform: translateY(-4px); box-shadow: 0 10px 22px rgba(0,0,0,0.45); }
+.nx-swatch-label { font-size: 0.6rem; color: var(--text-dim); text-align: center; max-width: 60px; }
+
+.nx-ticket-id { margin-top: 16px; font-size: 0.64rem; color: var(--text-dim); opacity: 0.6; line-height: 1.45; }
+
+.nx-xp-total { text-align: center; margin: 22px 0 0; font-family: 'Orbitron', monospace; }
+.nx-xp-total .big {
+  font-size: 2.8rem; font-weight: 900; color: var(--gold); line-height: 1;
+  text-shadow: 0 0 32px rgba(245,158,11,0.55);
+}
+.nx-xp-total .sub { font-size: 0.62rem; letter-spacing: 2px; color: var(--text-dim); margin-top: 4px; }
+
+/* ============================================================
+   PHASE 3: GAMIFIED RUNWAY ARENA & DATASET FUSION
+   ============================================================ */
+.nx-rec-wrap { width: 100%; display: flex; flex-direction: column; align-items: center; padding: 24px 16px 40px; }
+
+.nx-ticket {
+  width: min(840px, 100%);
+  background: var(--glass-bg); border: 1px solid rgba(245,158,11,0.28);
+  border-radius: 24px; padding: 28px 30px;
+  backdrop-filter: blur(24px); position: relative; overflow: hidden;
+  animation: ticket-reveal 0.7s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+}
+
+.nx-passport-badge-row {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+}
+.nx-passport-tag {
+  font-family: 'Orbitron', monospace; font-size: 0.65rem; font-weight: 700;
+  letter-spacing: 1.5px; padding: 4px 10px; border-radius: 6px;
+  background: rgba(245,158,11,0.12); color: var(--gold); border: 1px solid rgba(245,158,11,0.3);
+}
+
+.nx-biometric-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px; margin: 16px 0 20px;
+}
+.nx-bio-card {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px; padding: 12px 14px; display: flex; flex-direction: column; gap: 4px;
+}
+.nx-bio-lbl { font-size: 0.6rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-dim); }
+.nx-bio-val { font-size: 0.95rem; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 6px; }
+
+/* Dataset 1 & 2 Synthesis Card */
+.nx-synth-box {
+  background: linear-gradient(135deg, rgba(0,212,255,0.06), rgba(139,92,246,0.06));
+  border: 1px solid rgba(0,212,255,0.2); border-radius: 16px;
+  padding: 18px 20px; margin: 20px 0;
+}
+.nx-synth-title {
+  font-family: 'Orbitron', monospace; font-size: 0.72rem; font-weight: 800;
+  letter-spacing: 2px; color: var(--cyan); text-transform: uppercase;
+  margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;
+}
+.nx-synth-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+}
+@media (max-width: 680px) { .nx-synth-grid { grid-template-columns: 1fr; } }
+
+.nx-synth-col h4 {
+  font-size: 0.68rem; letter-spacing: 1px; text-transform: uppercase; color: var(--gold);
+  margin-bottom: 6px; font-family: 'Orbitron', monospace;
+}
+.nx-synth-col p { font-size: 0.78rem; line-height: 1.55; color: var(--text-mid); margin: 0; }
+
+
+/* ============================================================
+   AI CAPSULE WARDROBE SECTION (WORK, FUNCTION, PARTY, HOME)
+   ============================================================ */
+.nx-capsule-section {
+  background: rgba(8, 14, 28, 0.78);
+  border: 1px solid rgba(0, 212, 255, 0.25);
+  border-radius: 20px; padding: 24px; margin: 26px 0;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+}
+.nx-capsule-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  flex-wrap: wrap; gap: 14px; margin-bottom: 20px;
+}
+.nx-capsule-title {
+  font-family: 'Orbitron', monospace; font-size: 0.95rem; font-weight: 900;
+  letter-spacing: 1.5px; color: var(--gold);
+}
+.nx-capsule-subtitle {
+  font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;
+}
+.nx-gender-toggle {
+  display: flex; gap: 8px; background: rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.12); padding: 4px; border-radius: 10px;
+}
+.nx-gender-btn {
+  background: transparent; border: none; color: var(--text-dim);
+  font-family: 'Orbitron', monospace; font-size: 0.68rem; font-weight: 700;
+  padding: 6px 14px; border-radius: 7px; cursor: pointer; transition: all 0.25s;
+}
+.nx-gender-btn.active {
+  background: var(--cyan); color: #050b14; box-shadow: 0 0 14px rgba(0,212,255,0.4);
+}
+
+
+/* View Mode Switcher (Spotlight vs Complete Lookbook) */
+.nx-view-mode-bar {
+  display: flex; gap: 8px; margin-bottom: 18px;
+  background: rgba(0, 0, 0, 0.45); padding: 4px; border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1); width: fit-content;
+}
+.nx-view-mode-btn {
+  font-family: 'Orbitron', monospace; font-size: 0.7rem; font-weight: 800;
+  padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+  background: transparent; color: var(--text-mid); transition: all 0.25s;
+}
+.nx-view-mode-btn:hover { color: #fff; }
+.nx-view-mode-btn.active {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.22), rgba(139, 92, 246, 0.28));
+  border: 1px solid var(--cyan); color: #fff; box-shadow: 0 0 14px rgba(0, 212, 255, 0.3);
+}
+
+/* Body Type Selector Pill Bar */
+.nx-bodytype-selector-bar {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  margin-bottom: 20px; padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.35); border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+.nx-bodytype-label {
+  font-family: 'Orbitron', monospace; font-size: 0.64rem; font-weight: 800;
+  color: var(--cyan); letter-spacing: 0.06em; margin-right: 4px; display: flex; align-items: center; gap: 4px;
+}
+.nx-bodytype-pill {
+  font-family: 'Orbitron', monospace; font-size: 0.66rem; font-weight: 700;
+  padding: 6px 14px; border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--text-mid); cursor: pointer; transition: all 0.22s ease;
+  display: flex; align-items: center; gap: 6px;
+}
+.nx-bodytype-pill:hover {
+  background: rgba(255, 255, 255, 0.12); color: #fff;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+.nx-bodytype-pill.active {
+  background: linear-gradient(135deg, rgba(0, 212, 255, 0.25), rgba(255, 45, 120, 0.25));
+  border-color: var(--cyan); color: #fff;
+  box-shadow: 0 0 14px rgba(0, 212, 255, 0.4);
+}
+
+/* Dedicated Body Type Infographic Dossier Showcase */
+.nx-dossier-showcase {
+  background: linear-gradient(135deg, rgba(12, 20, 42, 0.95), rgba(7, 12, 28, 0.98));
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: 18px; padding: 22px; margin: 18px 0 24px;
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.65), 0 0 24px rgba(245, 158, 11, 0.12);
+  position: relative; overflow: hidden;
+}
+.nx-dossier-showcase::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #f59e0b, #00d4ff, #ff2d78);
+}
+.nx-dossier-header {
+  margin-bottom: 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 12px;
+}
+.nx-dossier-badge-wrap {
+  display: flex; gap: 10px; align-items: center; margin-bottom: 6px;
+}
+.nx-dossier-header h3 {
+  font-family: 'Orbitron', monospace; font-size: 1.12rem; font-weight: 800;
+  color: #fff; margin: 0 0 4px; letter-spacing: 0.5px;
+}
+.nx-dossier-header p {
+  font-size: 0.76rem; color: var(--text-dim); margin: 0; line-height: 1.45;
+}
+.nx-dossier-content-grid {
+  display: grid; grid-template-columns: 360px 1fr; gap: 22px;
+}
+@media (max-width: 860px) {
+  .nx-dossier-content-grid { grid-template-columns: 1fr; }
+}
+.nx-dossier-img-col {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.nx-dossier-img-frame {
+  position: relative; width: 100%; border-radius: 12px; overflow: hidden;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+  cursor: pointer; transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: #060a14;
+}
+.nx-dossier-img-frame:hover {
+  transform: scale(1.02);
+  box-shadow: 0 14px 40px rgba(245, 158, 11, 0.35);
+}
+.nx-dossier-img-frame img {
+  width: 100%; height: auto; max-height: 520px; object-fit: contain; display: block;
+}
+.nx-dossier-zoom-hint {
+  position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75); backdrop-filter: blur(6px);
+  color: var(--cyan); font-family: 'Orbitron', monospace; font-size: 0.58rem;
+  padding: 4px 10px; border-radius: 20px; border: 1px solid var(--cyan);
+  pointer-events: none; white-space: nowrap;
+}
+.nx-dossier-info-col {
+  display: flex; flex-direction: column; gap: 12px;
+}
+.nx-dossier-card {
+  background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px; padding: 14px 16px;
+}
+.nx-dossier-card h4 {
+  font-family: 'Orbitron', monospace; font-size: 0.72rem; font-weight: 800;
+  color: var(--gold); margin: 0 0 8px; letter-spacing: 0.6px;
+}
+.nx-dossier-proportions {
+  font-size: 0.82rem; font-weight: 600; color: #fff; line-height: 1.5; margin-bottom: 6px;
+}
+.nx-dossier-stat-row {
+  font-size: 0.74rem; color: var(--text-dim);
+}
+.nx-dossier-list {
+  margin: 0; padding-left: 18px; font-size: 0.76rem; color: #d1d5db; line-height: 1.6;
+}
+.nx-dossier-list li { margin-bottom: 5px; }
+.nx-dossier-list li:last-child { margin-bottom: 0; }
+.nx-dossier-swatches {
+  display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px;
+}
+.nx-dossier-swatch-chip {
+  display: flex; align-items: center; gap: 7px; background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; padding: 4px 8px;
+  font-size: 0.68rem; color: #e5e7eb;
+}
+.nx-dossier-swatch-dot {
+  width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); flex-shrink: 0;
+}
+
+/* Hero Look Spotlight Card */
+.nx-hero-look-card {
+  display: grid; grid-template-columns: 320px 1fr; gap: 24px;
+  background: rgba(12, 19, 38, 0.88); border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 16px; padding: 22px; margin-bottom: 24px;
+  position: relative; overflow: hidden;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.5);
+}
+@media (max-width: 820px) {
+  .nx-hero-look-card { grid-template-columns: 1fr; }
+}
+.nx-hero-visual-col {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(0,0,0,0.45); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 14px; position: relative; min-height: 380px;
+  text-align: center;
+}
+.nx-hero-visual-badge {
+  position: absolute; top: 12px; left: 12px; z-index: 2;
+  font-family: 'Orbitron', monospace; font-size: 0.58rem; font-weight: 900;
+  padding: 4px 9px; border-radius: 4px; background: rgba(0,0,0,0.75);
+  border: 1px solid var(--cyan); color: var(--cyan); backdrop-filter: blur(8px);
+}
+.nx-hero-visual-fitscore {
+  position: absolute; top: 12px; right: 12px; z-index: 2;
+  font-family: 'Orbitron', monospace; font-size: 0.62rem; font-weight: 800;
+  padding: 4px 9px; border-radius: 4px; background: rgba(16,185,129,0.25);
+  border: 1px solid var(--emerald); color: var(--emerald); backdrop-filter: blur(8px);
+}
+.nx-hero-editorial-img {
+  width: 100%; height: 370px; object-fit: cover; object-position: top center;
+  border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  cursor: pointer; transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.35s;
+}
+.nx-hero-editorial-img:hover {
+  transform: scale(1.025); box-shadow: 0 14px 40px rgba(0, 212, 255, 0.35);
+}
+.nx-hero-artwork-canvas {
+  width: 100%; height: 210px; max-height: 260px;
+  border-radius: 8px; display: none; object-fit: cover;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.nx-hero-visual-caption {
+  font-size: 0.68rem; color: var(--text-dim); margin-top: 10px;
+}
+
+/* Complete Lookbook Section */
+.nx-full-lookbook-wrap {
+  display: none; flex-direction: column; gap: 16px;
+  background: rgba(10, 16, 32, 0.88); border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 16px; padding: 22px; box-shadow: 0 12px 36px rgba(0, 0, 0, 0.55);
+  margin-bottom: 24px;
+}
+.nx-lookbook-header {
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+}
+.nx-lookbook-title {
+  font-family: 'Orbitron', monospace; font-size: 0.92rem; font-weight: 900; color: var(--gold);
+}
+.nx-lookbook-sub {
+  font-size: 0.74rem; color: var(--text-mid); margin-top: 2px;
+}
+.nx-lookbook-sub-tabs {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.nx-lookbook-sub-btn {
+  font-family: 'Orbitron', monospace; font-size: 0.68rem; font-weight: 700;
+  padding: 6px 14px; border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-mid); cursor: pointer; transition: all 0.2s;
+}
+.nx-lookbook-sub-btn.active {
+  background: rgba(0, 212, 255, 0.16); border-color: var(--cyan); color: #fff;
+  box-shadow: 0 0 12px rgba(0, 212, 255, 0.25);
+}
+.nx-lookbook-img-frame {
+  position: relative; border-radius: 12px; overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.75);
+  background: #000; cursor: zoom-in;
+}
+.nx-lookbook-main-img {
+  width: 100%; height: auto; display: block; object-fit: contain;
+  transition: transform 0.3s ease;
+}
+.nx-lookbook-main-img:hover {
+  transform: scale(1.008);
+}
+.nx-lookbook-zoom-hint {
+  position: absolute; bottom: 12px; right: 12px;
+  background: rgba(0,0,0,0.75); border: 1px solid rgba(255,255,255,0.2);
+  color: #fff; font-size: 0.64rem; padding: 4px 10px; border-radius: 20px;
+  backdrop-filter: blur(6px); pointer-events: none;
+}
+
+/* Lightbox Modal */
+.nx-lightbox-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(3, 6, 15, 0.92); backdrop-filter: blur(12px);
+  display: none; align-items: center; justify-content: center;
+  padding: 20px; cursor: zoom-out;
+}
+.nx-lightbox-img {
+  max-width: 95vw; max-height: 92vh; object-fit: contain;
+  border-radius: 12px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.nx-lightbox-close {
+  position: absolute; top: 20px; right: 24px;
+  background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff; font-size: 1.4rem; width: 42px; height: 42px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: all 0.2s;
+}
+.nx-lightbox-close:hover {
+  background: var(--magenta); border-color: var(--magenta);
+}
+
+.nx-iris-photo {
+  width: 24px; height: 24px; border-radius: 50%;
+  object-fit: cover; border: 1.5px solid var(--gold);
+  box-shadow: 0 0 10px rgba(245,158,11,0.5);
+  display: inline-block; vertical-align: middle; margin-right: 6px;
+}
+
+.nx-hero-info-col { display: flex; flex-direction: column; justify-content: space-between; }
+.nx-hero-title-row { margin-bottom: 12px; }
+.nx-hero-tagline {
+  font-size: 0.65rem; font-family: 'Orbitron', monospace; color: var(--gold);
+  letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 4px;
+}
+.nx-hero-title {
+  font-family: 'Orbitron', monospace; font-size: 1.05rem; font-weight: 900; color: #fff;
+  line-height: 1.3;
+}
+.nx-hero-details-list {
+  display: flex; flex-direction: column; gap: 7px; margin-bottom: 16px;
+  background: rgba(0,0,0,0.25); border-radius: 10px; padding: 12px 14px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.nx-hero-detail-row {
+  font-size: 0.74rem; color: var(--text-mid); display: flex; gap: 6px;
+}
+.nx-hero-detail-row b { color: #fff; min-width: 85px; font-size: 0.72rem; }
+
+.nx-hero-rationale-box {
+  background: rgba(0,212,255,0.06); border-left: 3px solid var(--cyan);
+  border-radius: 0 8px 8px 0; padding: 10px 14px; margin-bottom: 14px;
+  font-size: 0.73rem; color: var(--text); line-height: 1.45;
+}
+.nx-hero-rationale-box b { color: var(--cyan); display: block; margin-bottom: 3px; font-family: 'Orbitron', monospace; font-size: 0.65rem; }
+
+.nx-hero-bottom-actions {
+  display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: space-between;
+}
+.nx-hero-palette-preview {
+  display: flex; align-items: center; gap: 6px;
+}
+.nx-hero-palette-preview span { font-size: 0.66rem; color: var(--text-dim); }
+.nx-hero-palette-dot {
+  width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2);
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 760px) {
+  .nx-booth         { flex-direction: column; align-items: center; }
+  .nx-video-wrap    { width: 100%; }
+  .nx-meter-col     { flex-direction: row; width: 100%; height: 44px; justify-content: center; }
+  .nx-meter-track   { width: 200px; height: 18px; border-radius: 9px; }
+  .nx-meter-fill    { top: 0; left: 0; bottom: auto; right: auto; height: 100%; width: 0%; }
+  .nx-meter-fill::after { top: 0; right: 0; left: auto; bottom: 0; width: 3px; height: auto; border-radius: 0 9px 9px 0; }
+  .nx-bell          { order: -1; }
+  .nx-meter-cap     { width: 5px; height: 24px; }
+  .nx-panel         { width: 100%; }
+  .hud-pills        { gap: 5px; }
+  .hud-pill         { padding: 5px 10px; }
+  .nx-logo-sub      { display: none; }
+  .xp-bar-track     { width: 55px; }
+}
+</style>
+</head>
+<body>
+
+<div id="flashOverlay"></div>
+<canvas id="particleBg"></canvas>
+
+<div id="app">
+
+  <!-- ===== HEADER ===== -->
+  <header class="nx-header">
+    <div class="nx-logo">
+      <div class="nx-logo-icon">⬡</div>
+      <div class="nx-logo-wordmark">
+        <div class="nx-logo-text">NEXUS SCAN</div>
+        <div class="nx-logo-sub">Tall Order · Measurement Quest</div>
+      </div>
+    </div>
+    <div class="hud-pills">
+      <div class="hud-pill" title="XP Points">
+        <span class="hud-pill-icon">⚡</span>
+        <div class="xp-wrap">
+          <span class="hud-pill-val" id="xpOut">0 XP</span>
+          <div class="xp-bar-track"><div class="xp-bar-fill" id="xpBar"></div></div>
+        </div>
+      </div>
+      <div class="hud-pill" title="Mission progress">
+        <span class="hud-pill-icon">🎯</span>
+        <span class="hud-pill-val cyan" id="missionOut">1 / 3</span>
+      </div>
+      <div class="hud-pill" title="Streak">
+        <span class="hud-pill-icon">🔥</span>
+        <span class="hud-pill-val violet" id="streakOut">×0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ===== STEPPER ===== -->
+  <nav class="nx-stepper" id="stepper" aria-label="Quest progress">
+    <div class="nx-step active" data-step="1">
+      <div class="nx-step-ring">1</div>
+      <div class="nx-step-label">Scan</div>
+    </div>
+    <div class="nx-step-beam"></div>
+    <div class="nx-step" data-step="2">
+      <div class="nx-step-ring">2</div>
+      <div class="nx-step-label">Height</div>
+    </div>
+    <div class="nx-step-beam"></div>
+    <div class="nx-step" data-step="3">
+      <div class="nx-step-ring">3</div>
+      <div class="nx-step-label">Reward</div>
+    </div>
+  </nav>
+
+  <!-- ===== QUEST CARD ===== -->
+  <div class="nx-quest" id="questCard">
+    <span class="nx-quest-kicker">◈ Current Quest</span>
+    <div class="nx-quest-mission" id="missionBadge">MISSION 1/3</div>
+    <div class="nx-quest-title" id="questTitle">Lock Your Bio-Scan</div>
+    <div class="nx-quest-copy" id="questCopy">Center your face in the frame and hold perfectly still — charge the energy meter to 100% to unlock the Height Quest.</div>
+  </div>
+
+  <!-- ===== MAIN LAYOUT ===== -->
+  <div class="nx-arcade" id="arcade">
+
+    <!-- Camera Booth -->
+    <div class="nx-booth">
+      <div class="nx-video-wrap" id="videoWrap">
+        <span class="nx-corner tr"></span>
+        <span class="nx-corner bl"></span>
+        <div class="nx-scanline"></div>
+        <video id="video" autoplay playsinline muted></video>
+        <canvas id="overlay" class="overlay" aria-hidden="true"></canvas>
+        <canvas id="confetti" class="nx-confetti" aria-hidden="true"></canvas>
+        <div class="nx-cam-inframe-pill out" id="camInFramePill" style="display:none">
+          <span class="nx-cam-inframe-dot"></span>
+          <span id="camInFrameText">NO ONE OUT OF FRAME</span>
+        </div>
+        <div class="nx-video-status" id="status" role="status" aria-live="polite">Initializing scanner…</div>
+        <!-- Camera Permission & Error Overlay -->
+        <div class="nx-cam-overlay" id="camErrorOverlay" style="display:none">
+          <div class="nx-cam-overlay-icon">📷</div>
+          <div class="nx-cam-overlay-title" id="camErrorTitle">Camera Access Needed</div>
+          <div class="nx-cam-overlay-sub" id="camErrorSub">Click below and allow camera permissions in your browser to activate the 3D Bio-Scanner.</div>
+          <button class="nx-btn nx-btn-cyan" id="camRetryBtn" style="font-size:0.75rem;padding:8px 20px">ALLOW & START CAMERA</button>
+        </div>
+      </div>
+
+      <!-- Energy Meter -->
+      <div class="nx-meter-col">
+        <div class="nx-bell" id="bell">🔔</div>
+        <div class="nx-meter-track">
+          <div class="nx-meter-fill" id="tubeFill"></div>
+        </div>
+        <div class="nx-meter-cap"></div>
+      </div>
+    </div>
+
+    <!-- Control Panel -->
+    <div class="nx-panel" id="panel">
+      <div class="nx-panel-heading">
+        <div class="nx-panel-num" id="panelStepNum">1</div>
+        <div class="nx-panel-title" id="panelHeading">Face Scan</div>
+      </div>
+
+      <!-- PHASE 1 -->
+      <div id="phase1Panel">
+        <p class="nx-hint">Center your face in the scanner. Hold still to charge the energy meter and unlock Mission 2.</p>
+
+        <span class="nx-label">Eye Colour</span>
+        <div class="nx-iris-grid" id="irisGrid">
+          <div class="nx-iris-chip" data-iris="Blue"       data-hex="#5b8fc7"><span class="nx-iris-orb" style="background:#5b8fc7"></span>Blue</div>
+          <div class="nx-iris-chip" data-iris="Green"      data-hex="#5e8c4f"><span class="nx-iris-orb" style="background:#5e8c4f"></span>Green</div>
+          <div class="nx-iris-chip" data-iris="Hazel"      data-hex="#8a7233"><span class="nx-iris-orb" style="background:#8a7233"></span>Hazel</div>
+          <div class="nx-iris-chip" data-iris="Brown"      data-hex="#6b4423"><span class="nx-iris-orb" style="background:#6b4423"></span>Brown</div>
+          <div class="nx-iris-chip" data-iris="Dark Brown" data-hex="#3c2414"><span class="nx-iris-orb" style="background:#3c2414"></span>Dark</div>
+        </div>
+        <!-- Hidden select kept for JS compatibility -->
+        <select id="irisSelect" style="display:none">
+          <option value="">Auto-detecting…</option>
+          <option value="Blue">Blue / Gray</option>
+          <option value="Green">Green</option>
+          <option value="Hazel">Hazel / Amber</option>
+          <option value="Brown">Brown</option>
+          <option value="Dark Brown">Dark Brown</option>
+        </select>
+
+        <div class="nx-face-stats" id="faceStats">
+          <div class="nx-face-stat-row"><span class="k">Face shape</span><span class="v" id="faceShapeOut">–</span></div>
+          <div class="nx-face-stat-row"><span class="k">ML Confidence</span><span class="v" id="confOut">–</span></div>
+          <div class="nx-face-stat-row"><span class="k">Face width</span><span class="v" id="faceWidthOut">–</span></div>
+          <div class="nx-face-stat-row"><span class="k">Face length</span><span class="v" id="faceLengthOut">–</span></div>
+          <div class="nx-face-stat-row"><span class="k">Inter-pupil (IPD)</span><span class="v" id="ipdOut">–</span></div>
+          <div class="nx-face-stat-row"><span class="k">Jaw / Cheek ratio</span><span class="v" id="jawRatioOut">–</span></div>
+          <div class="nx-face-stat-row"><span class="k">Ticket ID</span><span class="v" id="ticketIdOut" style="font-size:0.6rem">–</span></div>
+        </div>
+
+        <button class="nx-btn nx-btn-primary" id="continueToHeightBtn" disabled>Unlock Height Quest →</button>
+      </div>
+
+      <!-- PHASE 2 -->
+      <div id="phase2Panel" style="display:none">
+        <div class="nx-mission-banner">
+          <div class="nx-mission-icon">📏</div>
+          <div class="nx-mission-text">
+            <b>DISTANCE-INVARIANT HEIGHT ESTIMATOR</b>
+            <span>Calibrated camera geometry measures foot floor position, maps real-world distance, and computes true standing height in cm.</span>
+          </div>
+        </div>
+
+        <!-- Camera Setup & Calibration (from height-estimator.html) -->
+        <div class="nx-validations-box" style="margin-top:10px">
+          <div class="nx-validations-title">
+            <span>CAMERA SETUP &amp; GEOMETRY</span>
+            <span class="nx-val-pill pass" id="valStatusPill">READY</span>
+          </div>
+
+          <!-- EXACT DISTANCE & HEIGHT OPTICAL CALIBRATION -->
+          <div style="background:linear-gradient(135deg, rgba(0,212,255,0.08), rgba(139,92,246,0.06));border:1px solid rgba(0,212,255,0.3);border-radius:10px;padding:12px;margin-top:8px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <span style="font-size:0.72rem;font-weight:700;letter-spacing:1px;color:var(--cyan);text-transform:uppercase">🎯 Exact Optics Calibration</span>
+              <span class="nx-val-pill" id="calibStatusBadge" style="font-size:0.62rem;padding:2px 8px">UNCALIBRATED</span>
+            </div>
+            <p style="font-size:0.68rem;color:var(--text-dim);margin:0 0 8px;line-height:1.4">
+              Calibrate camera optics using your exact distance from camera and actual height.
+            </p>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div>
+                <label class="nx-label" style="font-size:0.66rem;margin-bottom:3px">Distance from camera (cm)</label>
+                <input type="number" id="calibDist" value="200" min="50" max="600" step="5" class="nx-input" style="padding:6px 8px;font-size:0.85rem;font-weight:600">
+              </div>
+              <div>
+                <label class="nx-label" style="font-size:0.66rem;margin-bottom:3px">Your actual height (cm)</label>
+                <input type="number" id="calibHeight" value="170" min="80" max="250" step="0.5" class="nx-input" style="padding:6px 8px;font-size:0.85rem;font-weight:600">
+              </div>
+            </div>
+            <div class="nx-ground-presets" style="margin-top:6px;margin-bottom:8px">
+              <span style="font-size:0.62rem;color:var(--text-dim);align-self:center;margin-right:2px">Dist presets:</span>
+              <button type="button" class="nx-preset-chip" onclick="setDistPreset(150)">150cm</button>
+              <button type="button" class="nx-preset-chip active" id="presetDist200" onclick="setDistPreset(200)">200cm</button>
+              <button type="button" class="nx-preset-chip" onclick="setDistPreset(250)">250cm</button>
+              <button type="button" class="nx-preset-chip" onclick="setDistPreset(300)">300cm</button>
+            </div>
+            <button class="nx-btn nx-btn-primary" id="calibBtn" style="width:100%;padding:8px;font-size:0.82rem;font-weight:700;letter-spacing:0.5px">
+              🎯 Calibrate With Exact Distance &amp; Height
+            </button>
+          </div>
+
+          <details class="nx-details" id="calibDetails" style="margin-top:8px">
+            <summary style="font-size:0.72rem;cursor:pointer;color:var(--text-dim)">⚙️ Advanced Tilt &amp; Tripod Angles (Optional)</summary>
+            <div class="nx-details-body" style="padding:8px 0 4px">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+                <div>
+                  <label class="nx-label" style="font-size:0.68rem;margin-bottom:3px">Camera height (cm)</label>
+                  <input type="number" id="camHeight" value="120" class="nx-input" style="padding:6px 8px;font-size:0.85rem">
+                </div>
+                <div>
+                  <label class="nx-label" style="font-size:0.68rem;margin-bottom:3px">Tilt (deg, 0=level)</label>
+                  <input type="number" id="camTilt" value="0" step="0.5" class="nx-input" style="padding:6px 8px;font-size:0.85rem">
+                </div>
+              </div>
+            </div>
+          </details>
+
+          <div class="nx-val-item pass" id="valUpright" style="margin-top:8px"><span class="nx-val-icon" id="valIconUpright">✓</span> Full body in frame (nose + feet)</div>
+          <div class="nx-val-hint" id="valHint">Stand back so your head and feet are visible in frame…</div>
+        </div>
+
+        <!-- MULTI-LANDMARK ANTHROPOMETRIC TELEMETRY -->
+        <div class="nx-anthro-card" id="anthroCard" style="display:none;margin-top:10px;background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.22);border-radius:10px;padding:10px 12px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;border-bottom:1px solid rgba(0,212,255,0.12);padding-bottom:5px;">
+            <span style="font-size:0.72rem;font-weight:700;letter-spacing:1px;color:var(--cyan);text-transform:uppercase">🧬 Anthropometric Biometrics</span>
+            <span class="nx-val-pill pass" id="anthroConfBadge" style="font-size:0.6rem;padding:2px 7px">95% CONF</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;font-size:0.72rem;">
+            <div class="nx-face-stat-row"><span class="k">Crown → Heel:</span><span class="v" id="anthroCrownHeelOut">—</span></div>
+            <div class="nx-face-stat-row"><span class="k">Arm Span:</span><span class="v" id="anthroArmSpanOut">—</span></div>
+            <div class="nx-face-stat-row"><span class="k">Shoulder Width:</span><span class="v" id="anthroShoulderOut">—</span></div>
+            <div class="nx-face-stat-row"><span class="k">Hip Width:</span><span class="v" id="anthroHipOut">—</span></div>
+            <div class="nx-face-stat-row"><span class="k">Torso Length:</span><span class="v" id="anthroTorsoOut">—</span></div>
+            <div class="nx-face-stat-row"><span class="k">Leg Length:</span><span class="v" id="anthroLegOut">—</span></div>
+            <div class="nx-face-stat-row"><span class="k">Arm Length:</span><span class="v" id="anthroArmOut">—</span></div>
+            <div class="nx-face-stat-row"><span class="k">Calculated Stature:</span><span class="v" id="anthroHeightOut" style="color:var(--gold)">—</span></div>
+          </div>
+        </div>
+
+        <div class="nx-auto-row" style="margin-top:10px">
+          <span>Body profile</span>
+          <b id="profileAutoText">Auto-detecting…</b>
+        </div>
+        <select id="torsoSelect" class="nx-select" aria-label="Body profile correction">
+          <option value="">Auto-Detect from Camera</option>
+          <optgroup label="── WOMEN'S SILHOUETTES ──" id="optgroupWomen">
+            <option value="Hourglass">Hourglass (Balanced Shoulders &amp; Hips, Defined Waist)</option>
+            <option value="Pear / Triangle">Pear / Triangle (Narrower Shoulders, Wider Hips)</option>
+            <option value="Rectangle / Balanced">Rectangle (Straight Silhouette, Balanced Proportions)</option>
+            <option value="Inverted Triangle">Inverted Triangle (Broad Shoulders, Athletic Frame)</option>
+            <option value="Apple / Round">Apple / Round (Fuller Midsection, Slender Limbs)</option>
+            <option value="Petite / Compact">Petite / Compact (Delicate Proportional Scale)</option>
+          </optgroup>
+          <optgroup label="── MEN'S BIOMETRIC ARCHETYPES ──" id="optgroupMen">
+            <option value="Mesomorph">Mesomorph (Athletic Muscular Build, Broad Shoulders)</option>
+            <option value="Ectomorph">Ectomorph (Lean Linear Build, Long Limbs)</option>
+            <option value="Endomorph">Endomorph (Substantial Broad Frame, Softer Edges)</option>
+            <option value="Inverted Triangle">Inverted Triangle (Broad Shoulders, Tapered V-Waist)</option>
+            <option value="Rectangle / Balanced">Rectangle (Balanced Proportional Build)</option>
+            <option value="Pear / Triangle">Triangle (Narrower Shoulders, Broader Base)</option>
+          </optgroup>
+        </select>
+
+        <details class="nx-details" style="margin-top:10px">
+          <summary>📷 Camera not working?</summary>
+          <div class="nx-details-body">
+            <label class="nx-label">Enter height manually (cm)</label>
+            <input type="number" id="manualHeight" min="50" max="260" step="0.1" placeholder="e.g. 170" class="nx-input">
+            <button class="nx-btn nx-btn-ghost" id="useManualHeightBtn">Use manual height</button>
+          </div>
+        </details>
+
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="nx-btn nx-btn-secondary" id="calcHeightBtn" style="flex:1;font-weight:700;border-color:var(--cyan);color:var(--cyan);background:rgba(0,212,255,0.08)">📐 Calculate Height</button>
+          <button class="nx-btn nx-btn-ghost" id="clearCacheBtn" style="flex:1;border-color:rgba(255,45,120,0.5);color:var(--magenta)">🧹 Clear Cache</button>
+        </div>
+        <button class="nx-btn nx-btn-violet" id="continueToRecBtn" style="display:none;margin-top:10px">Claim Style Reward →</button>
+      </div>
+
+    </div><!-- /panel -->
+  </div><!-- /arcade -->
+
+  <!-- ===== BELOW ARCADE ===== -->
+  <div class="nx-below" id="belowArcade">
+    <div class="nx-scoreboard">
+      <div class="nx-score-card" id="distCard">
+        <div class="num" id="distOut">–</div>
+        <div class="lbl">Estimated distance (cm)</div>
+      </div>
+      <div class="nx-score-card" id="heightCard">
+        <div class="num" id="heightOut">–</div>
+        <div class="lbl" id="heightLbl">Estimated height (cm)</div>
+      </div>
+    </div>
+    <button class="nx-btn nx-btn-ghost nx-remeasure" id="remeasureBtn" style="display:none">◎ Measure Again</button>
+    <div class="nx-gallery" id="gallery"></div>
+    <div class="nx-badge" id="badge">🏆 DISTANCE-PROOF CHAMPION 🏆</div>
+  </div>
+
+  <!-- ===== PHASE 3 GAMIFIED RUNWAY ARENA ===== -->
+  <div class="nx-rec-wrap" id="recWrap" style="display:none">
+    <div class="nx-ticket">
+      <!-- Passport Header -->
+      <div class="nx-passport-badge-row">
+        <div class="nx-passport-tag">✨ AI COUTURE ATELIER</div>
+        <div class="nx-passport-tag" style="border-color:var(--cyan);color:var(--cyan)">DATASET SYNTHESIS v2.0</div>
+      </div>
+      
+      <div class="nx-ticket-header">
+        <h2>BIOMETRIC STYLE PASSPORT</h2>
+        <p>Your Torso and Iris Biometrics have been synthesized with our 1,000-User Anthropometric and Facial Beauty Datasets.</p>
+      </div>
+
+      <!-- Biometrics Grid -->
+      <div class="nx-biometric-grid">
+        <div class="nx-bio-card">
+          <span class="nx-bio-lbl">Standing Height</span>
+          <span class="nx-bio-val" id="recHeightOut">—</span>
+        </div>
+        <div class="nx-bio-card">
+          <span class="nx-bio-lbl">Eye / Iris Color</span>
+          <span class="nx-bio-val">
+            <span class="nx-iris-swatch-big" id="recIrisSwatch"></span>
+            <span id="recIrisName">—</span>
+          </span>
+        </div>
+        <div class="nx-bio-card">
+          <span class="nx-bio-lbl">Torso Silhouette</span>
+          <span class="nx-bio-val" id="recTorsoName">—</span>
+        </div>
+        <div class="nx-bio-card" id="recFaceShapeCard">
+          <span class="nx-bio-lbl">Face Geometry</span>
+          <span class="nx-bio-val" id="recFaceShapeOut">—</span>
+        </div>
+      </div>
+
+      <!-- Anthropometrics Biometrics Strip -->
+      <div class="nx-anthro-passport-strip" id="recAnthroStrip" style="margin-top:10px;background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.18);border-radius:10px;padding:10px 14px;display:none;">
+        <div style="font-size:0.68rem;font-weight:700;letter-spacing:1px;color:var(--cyan);text-transform:uppercase;margin-bottom:6px;display:flex;justify-content:space-between;">
+          <span>🧬 MULTI-LANDMARK ANTHROPOMETRICS</span>
+          <span id="recAnthroConfBadge" style="color:var(--emerald);font-size:0.64rem">96% FIT RELIABILITY</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(110px, 1fr));gap:8px;font-size:0.72rem;">
+          <div><span style="color:var(--text-dim);display:block;font-size:0.62rem">Crown → Heel</span><b id="recCrownHeelVal" style="color:var(--text);font-family:Orbitron,monospace">—</b></div>
+          <div><span style="color:var(--text-dim);display:block;font-size:0.62rem">Arm Span</span><b id="recArmSpanVal" style="color:var(--text);font-family:Orbitron,monospace">—</b></div>
+          <div><span style="color:var(--text-dim);display:block;font-size:0.62rem">Shoulder Width</span><b id="recShoulderVal" style="color:var(--text);font-family:Orbitron,monospace">—</b></div>
+          <div><span style="color:var(--text-dim);display:block;font-size:0.62rem">Hip Width</span><b id="recHipVal" style="color:var(--text);font-family:Orbitron,monospace">—</b></div>
+          <div><span style="color:var(--text-dim);display:block;font-size:0.62rem">Torso Length</span><b id="recTorsoVal" style="color:var(--text);font-family:Orbitron,monospace">—</b></div>
+          <div><span style="color:var(--text-dim);display:block;font-size:0.62rem">Leg Length</span><b id="recLegVal" style="color:var(--text);font-family:Orbitron,monospace">—</b></div>
+        </div>
+      </div>
+
+      <!-- Dataset 1 & 2 Synthesis Card -->
+      <div class="nx-synth-box">
+        <div class="nx-synth-title">
+          <span>🧠 ANTHROPOMETRIC FIT & BEAUTY PROFILE</span>
+          <span id="recSynergyPill" style="color:var(--emerald);font-size:0.65rem">96.4% FIT SYNERGY</span>
+        </div>
+        <div class="nx-synth-grid">
+          <div class="nx-synth-col">
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <img id="recBodyWireframe" src="body_wireframe_it.png" alt="Body Silhouette" style="width:52px;height:82px;object-fit:contain;border-radius:6px;border:1px solid rgba(255,255,255,0.18);background:#050914;padding:2px;flex-shrink:0" />
+              <div>
+                <h4 id="recBodyClusterTitle">BODY SILHOUETTE (DATASET 2: 1,000 SCANS)</h4>
+                <p id="recBodyClusterText">Analyzing 1,000 real-world body scans…</p>
+                <div style="margin-top:8px;font-size:0.75rem;color:var(--text)">
+                  <b>Recommended Size:</b> <span id="recSizeOut" style="color:var(--gold);font-weight:700">M / L</span> · 
+                  <b>Dominant Style:</b> <span id="recStyleOut" style="color:var(--cyan);font-weight:700">Modern Classic</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="nx-synth-col">
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <img id="recBeautyThumb" src="beauty_lip_ruby.png" alt="Beauty Accent" style="width:58px;height:58px;object-fit:cover;border-radius:8px;border:1px solid rgba(255,255,255,0.18);box-shadow:0 0 12px rgba(255,45,120,0.35);flex-shrink:0" />
+              <div>
+                <h4 id="recBeautyTitle">BEAUTY & COLORWAY (DATASET 1)</h4>
+                <p id="recBeautyText">Matching lip accents and undertone finishes…</p>
+                <div style="margin-top:8px;font-size:0.75rem;color:var(--text)">
+                  <b>Lip Accent:</b> <span id="recLipOut" style="color:var(--magenta);font-weight:700">Natural Rose (NR-12)</span> · 
+                  <b>Paired Finish:</b> <span id="recCountryOut" style="color:var(--violet);font-weight:700">Matte Finish Skin</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      <!-- DEDICATED SPECIFIC BODY TYPE INFOGRAPHIC DOSSIER SHOWCASE -->
+      <div class="nx-dossier-showcase" id="dossierShowcase">
+        <div class="nx-dossier-header">
+          <div class="nx-dossier-badge-wrap">
+            <span class="nx-passport-tag" style="border-color:var(--gold);color:var(--gold)">👑 DEDICATED BIOMETRIC DOSSIER</span>
+            <span class="nx-val-pill pass" id="dossierFitPill">97.8% FIT SYNERGY</span>
+          </div>
+          <h3 id="dossierMainTitle">HOURGLASS — CURVILINEAR GOLDEN-RATIO DOSSIER</h3>
+          <p id="dossierSubtitle">Specific anthropometric measurements, garment structural directives, and dedicated editorial styling guide for this exact anatomy.</p>
+        </div>
+
+        <div class="nx-dossier-content-grid">
+          <div class="nx-dossier-img-col">
+            <div class="nx-dossier-img-frame" onclick="openLookbookModal(document.getElementById('dossierImg').src)">
+              <img id="dossierImg" src="dossier_w_hourglass.png" alt="Body Type Infographic Guide" />
+              <div class="nx-dossier-zoom-hint">🔍 Click to zoom full high-res infographic</div>
+            </div>
+          </div>
+          <div class="nx-dossier-info-col">
+            <div class="nx-dossier-card">
+              <h4>📐 ANTHROPOMETRIC SPECS &amp; PROPORTIONS</h4>
+              <div class="nx-dossier-proportions" id="dossierProportions">Bust: 92.4cm · Waist: 68.2cm · Hips: 96.7cm (Balanced Shoulders &amp; Hips, Defined Waist)</div>
+              <div class="nx-dossier-stat-row">
+                <span>Recommended Sizing:</span> <b id="dossierSizeRange" style="color:var(--gold)">S / M / L</b>
+              </div>
+            </div>
+
+            <div class="nx-dossier-card">
+              <h4>✨ MASTER TAILORING DIRECTIVES (SPECIFIC TO THIS BUILD)</h4>
+              <ul class="nx-dossier-list" id="dossierDirectivesList">
+                <!-- Populated dynamically -->
+              </ul>
+            </div>
+
+            <div class="nx-dossier-card">
+              <h4>🎨 DEDICATED PALETTE &amp; HARMONIES</h4>
+              <div class="nx-dossier-swatches" id="dossierSwatches">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Colors That Work For You -->
+      <div class="nx-rec-section" style="margin-top:10px;padding-top:10px">
+        <h3>Harmonic Color Spectrum</h3>
+        <p id="recPaletteNote"></p>
+        <div class="nx-swatch-row" id="recSwatchRow"></div>
+      </div>
+
+      <!-- INNOVATIVE & CREATIVE 4-OCCASION AI CAPSULE WARDROBE (WORK, FUNCTION, PARTY, HOME) -->
+      <div class="nx-capsule-section">
+        <div class="nx-capsule-header">
+          <div>
+            <div class="nx-capsule-title">✨ AI GENERATED CAPSULE WARDROBE</div>
+            <div class="nx-capsule-subtitle">Curated capsule wardrobe calibrated to your torso silhouette & eye biometrics</div>
+          </div>
+          <!-- Gender Switcher -->
+          <div class="nx-gender-toggle">
+            <button class="nx-gender-btn active" id="genderWomenBtn" onclick="switchGender('women')">👩 WOMEN'S EDIT</button>
+            <button class="nx-gender-btn" id="genderMenBtn" onclick="switchGender('men')">👨 MEN'S EDIT</button>
+          </div>
+        </div>
+
+        <!-- View Mode: Spotlight Look vs Complete Lookbook -->
+        <div class="nx-view-mode-bar">
+          <button class="nx-view-mode-btn active" id="viewModeSpotlight" onclick="switchViewMode('spotlight')">
+            🌟 EDITORIAL SPOTLIGHT
+          </button>
+          <button class="nx-view-mode-btn" id="viewModeLookbook" onclick="switchViewMode('lookbook')">
+            📖 COMPLETE CAPSULE LOOKBOOK
+          </button>
+        </div>
+
+        <!-- Dynamic Body Profile / Archetype Selector Bar -->
+        <div class="nx-bodytype-selector-bar" id="bodyTypeSelectorBar">
+          <!-- Populated dynamically by renderBodyTypePills() -->
+        </div>
+
+        <!-- Hero Spotlight Look Card -->
+        <div class="nx-hero-look-card" id="heroLookCard">
+          <!-- Populated dynamically by style_engine -->
+        </div>
+
+        <!-- Complete Lookbook Container -->
+        <div class="nx-full-lookbook-wrap" id="fullLookbookWrap">
+          <div class="nx-lookbook-header">
+            <div>
+              <div class="nx-lookbook-title" id="lookbookTitle">AI GENERATED CAPSULE WARDROBE — WOMEN'S EDIT</div>
+              <div class="nx-lookbook-sub" id="lookbookSub">Complete 3-Silhouette Capsule: Hourglass · Pear · Rectangle with 27 Curated Pieces</div>
+            </div>
+            <div class="nx-lookbook-sub-tabs" id="lookbookSubTabs"></div>
+          </div>
+          <div class="nx-lookbook-img-frame" onclick="openLookbookModal(document.getElementById('lookbookMainImg').src)">
+            <img src="rec_women_capsules.png" id="lookbookMainImg" class="nx-lookbook-main-img" alt="Capsule Lookbook Master Sheet" />
+            <div class="nx-lookbook-zoom-hint">🔍 Click to Expand High-Res</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- XP & Ticket Info -->
+      <div class="nx-xp-total">
+        <div class="big" id="finalXP">0</div>
+        <div class="sub">TOTAL QUEST XP EARNED</div>
+      </div>
+      <div class="nx-ticket-id">
+        Ticket ID: <span id="recTicketIdOut">–</span> · Synthesized using Dataset 1 (Beauty/Country Archetypes) and Dataset 2 (1,000 Body Profiles).
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display:flex;gap:12px;width:min(580px,100%);margin-top:18px;flex-wrap:wrap;justify-content:center">
+      <button class="nx-btn nx-btn-cyan" id="copyPassportBtn" style="flex:1;min-width:220px">📋 Copy Style Passport</button>
+      <button class="nx-btn nx-btn-ghost" id="startOverBtn" style="flex:1;min-width:220px">↺ Play Quest Again</button>
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ============================================================
+     SCRIPTS
+     ============================================================ -->
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection@2.1.3/dist/pose-detection.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@0.8.5/dist/teachablemachine-image.min.js"></script>
+<script src="style_engine.js"></script>
+
+<!-- Particle background -->
+<script>
+(function(){
+  const cv=document.getElementById('particleBg'),c=cv.getContext('2d');
+  let W,H,pts=[];
+  function resize(){W=cv.width=window.innerWidth;H=cv.height=window.innerHeight;}
+  resize(); window.addEventListener('resize',resize);
+  for(let i=0;i<80;i++) pts.push({
+    x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,
+    vx:(Math.random()-0.5)*0.25,vy:(Math.random()-0.5)*0.25,
+    r:Math.random()*1.2+0.3,a:Math.random()*0.8+0.2
+  });
+  function tick(){
+    c.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=W;if(p.x>W)p.x=0;if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+      c.beginPath();c.arc(p.x,p.y,p.r,0,Math.PI*2);
+      c.fillStyle='rgba(0,212,255,'+p.a*0.3+')';c.fill();
+    });
+    for(let i=0;i<pts.length;i++){
+      for(let j=i+1;j<pts.length;j++){
+        const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+        if(d<120){
+          c.beginPath();c.moveTo(pts[i].x,pts[i].y);c.lineTo(pts[j].x,pts[j].y);
+          c.strokeStyle='rgba(0,212,255,'+(1-d/120)*0.07+')';c.lineWidth=0.5;c.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+  tick();
+})();
+</script>
+
+<!-- Button ripple effect -->
+<script>
+document.addEventListener('click',function(e){
+  var btn=e.target.closest('.nx-btn');
+  if(!btn||btn.disabled) return;
+  var r=document.createElement('span');r.className='ripple';
+  var rect=btn.getBoundingClientRect(),size=Math.max(rect.width,rect.height);
+  r.style.cssText='width:'+size+'px;height:'+size+'px;left:'+(e.clientX-rect.left-size/2)+'px;top:'+(e.clientY-rect.top-size/2)+'px';
+  btn.appendChild(r);r.addEventListener('animationend',function(){r.remove();});
+});
+</script>
+
+<!-- Core app logic (all original logic preserved + enhanced) -->
+<script type="module">
+/* ---- DOM references ---- */
+const video=document.getElementById('video'),overlay=document.getElementById('overlay'),ctx=overlay.getContext('2d');
+const confettiCv=document.getElementById('confetti'),cctx=confettiCv.getContext('2d');
+const statusEl=document.getElementById('status'),distOut=document.getElementById('distOut'),heightOut=document.getElementById('heightOut');
+const tubeFill=document.getElementById('tubeFill'),bell=document.getElementById('bell'),gallery=document.getElementById('gallery'),badge=document.getElementById('badge');
+const panelHeading=document.getElementById('panelHeading'),panelStepNum=document.getElementById('panelStepNum');
+const phase1Panel=document.getElementById('phase1Panel'),phase2Panel=document.getElementById('phase2Panel');
+const arcadeEl=document.getElementById('arcade'),belowArcade=document.getElementById('belowArcade'),recWrap=document.getElementById('recWrap');
+const irisSelect=document.getElementById('irisSelect'),faceStatsBox=document.getElementById('faceStats');
+const faceShapeOut=document.getElementById('faceShapeOut'),confOut=document.getElementById('confOut'),faceWidthOut=document.getElementById('faceWidthOut'),faceLengthOut=document.getElementById('faceLengthOut');
+const ipdOut=document.getElementById('ipdOut'),jawRatioOut=document.getElementById('jawRatioOut'),ticketIdOut=document.getElementById('ticketIdOut');
+const continueToHeightBtn=document.getElementById('continueToHeightBtn');
+const valStatusPill=document.getElementById('valStatusPill'),valHint=document.getElementById('valHint');
+const camInFramePill=document.getElementById('camInFramePill'),camInFrameText=document.getElementById('camInFrameText');
+const valUpright=document.getElementById('valUpright'),valIconUpright=document.getElementById('valIconUpright');
+const torsoSelect=document.getElementById('torsoSelect'),manualHeightInput=document.getElementById('manualHeight'),useManualHeightBtn=document.getElementById('useManualHeightBtn'),continueToRecBtn=document.getElementById('continueToRecBtn');
+const recHeightOut=document.getElementById('recHeightOut'),recIrisSwatch=document.getElementById('recIrisSwatch'),recIrisName=document.getElementById('recIrisName'),recTorsoName=document.getElementById('recTorsoName');
+const recFaceShapeRow=document.getElementById('recFaceShapeRow'),recFaceShapeOut=document.getElementById('recFaceShapeOut'),recTorsoHeadline=document.getElementById('recTorsoHeadline'),recTorsoList=document.getElementById('recTorsoList');
+const recPaletteNote=document.getElementById('recPaletteNote'),recSwatchRow=document.getElementById('recSwatchRow'),recTicketIdOut=document.getElementById('recTicketIdOut'),startOverBtn=document.getElementById('startOverBtn');
+const irisGrid=document.getElementById('irisGrid');
+
+/* ---- Iris chip interaction ---- */
+irisGrid.querySelectorAll('.nx-iris-chip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    irisGrid.querySelectorAll('.nx-iris-chip').forEach(c=>c.classList.remove('selected'));
+    chip.classList.add('selected');
+    irisSelect.value=chip.dataset.iris;
+    state.face.iris=chip.dataset.iris; state.face.irisHex=chip.dataset.hex;
+    continueToHeightBtn.disabled=false;
+  });
+});
+
+const sampleCanvas=document.createElement('canvas');
+const sampleCtx=sampleCanvas.getContext('2d',{willReadFrequently:true});
+
+/* ---- State ---- */
+let currentPhase=1,poseDetector=null,faceLandmarker=null,faceDetector=null;
+let detectorReady=false,landmarkerReady=false,poseLandmarker=null,poseLandmarkerReady=false,lastPoseTimestamp=-1,lastFaceTimestamp=-1;
+let tmModel=null,tmReady=false,lastTmPrediction=null,tmClassifyCounter=0,tmClassifying=false;
+let calibrated=false,fPx=null,headOffsetCm=13.0,lastKeypoints=null;
+let lastFaceMeshLandmarks=null,lastAnthropometryProfile=null;
+let exactCalibration = {
+  active: false,
+  D0: 200,
+  H0: 170,
+  hPx0: null,
+  fPx: null,
+  C_scale: null
+};
+let smoothedDist = null, smoothedHeight = null;
+try {
+  const savedCalib = localStorage.getItem('exact_calibration');
+  if(savedCalib){
+    const p = JSON.parse(savedCalib);
+    if(p && p.active && p.fPx > 0 && p.C_scale > 0){
+      exactCalibration = p;
+      fPx = p.fPx;
+      calibrated = true;
+    }
+  }
+} catch(e){}
+let locked=false,shortBuf=[],stableSamples=[];
+const SHORT_BUF_LEN=6,STABLE_TOL_CM=1.8,STREAK_TARGET=32;
+let shotsHistory=[],faceLocked=false,faceShortBuf=[],faceStableCount=0,irisColorAccum=[];
+const FACE_SHORT_LEN=6,FACE_STABLE_TOL=0.014,FACE_STREAK_TARGET=36;
+const state={face:{shape:null,widthCm:null,lengthCm:null,ticketId:null,iris:null,irisHex:null,confidence:null,ipdPx:null,jawRatio:null},torso:{shape:null},height:{value:null},anthropometry:null};
+let xp=0,streak=0;
+const XP_MAX=500;
+
+/* ---- HUD ---- */
+function updateGameHUD(){
+  const xEl=document.getElementById('xpOut'),stEl=document.getElementById('streakOut'),barEl=document.getElementById('xpBar');
+  if(xEl)  xEl.textContent=xp+' XP';
+  if(stEl) stEl.textContent='×'+streak;
+  if(barEl)barEl.style.width=Math.min(100,(xp/XP_MAX)*100)+'%';
+}
+function addXP(amount){ xp+=amount; streak+=1; updateGameHUD(); floatXP(amount); }
+function floatXP(amount){
+  if(!document.getElementById('xpFloatKf')){
+    const s=document.createElement('style');s.id='xpFloatKf';
+    s.textContent='@keyframes xp-float{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-52px)}}';
+    document.head.appendChild(s);
+  }
+  const el=document.createElement('div');
+  el.textContent='+'+amount+' XP';
+  el.style.cssText='position:fixed;top:70px;right:26px;font-family:Orbitron,monospace;font-weight:700;font-size:1.1rem;color:#f59e0b;text-shadow:0 0 20px rgba(245,158,11,0.85);animation:xp-float 1.3s ease-out forwards;pointer-events:none;z-index:9000;';
+  document.body.appendChild(el); setTimeout(()=>el.remove(),1300);
+}
+function setQuest(title,copy,missionNum){
+  const t=document.getElementById('questTitle'),c=document.getElementById('questCopy'),m=document.getElementById('missionOut'),b=document.getElementById('missionBadge');
+  if(t)t.textContent=title; if(c)c.textContent=copy;
+  if(m)m.textContent=missionNum+' / 3'; if(b)b.textContent='MISSION '+missionNum+'/3';
+}
+function updateValidationUI(val,isStill){
+  if(!valStatusPill)return;
+  const checks=(val&&val.checks)||{};
+  const allGood=val&&val.valid;
+  const humanDetected=val&&(val.humanDetected!==undefined?val.humanDetected:val.inFrame);
+
+  // On-camera inframe indicator
+  if(camInFramePill&&camInFrameText){
+    if(humanDetected){
+      camInFramePill.className='nx-cam-inframe-pill in';
+      camInFrameText.textContent='IN FRAME';
+    }else{
+      camInFramePill.className='nx-cam-inframe-pill out';
+      camInFrameText.textContent='NO ONE OUT OF FRAME';
+    }
+  }
+
+  if(allGood&&isStill){valStatusPill.textContent='PERFECT';valStatusPill.className='nx-val-pill pass';}
+  else if(allGood){valStatusPill.textContent='VALIDATED';valStatusPill.className='nx-val-pill pass';}
+  else{valStatusPill.textContent='ALIGNING';valStatusPill.className='nx-val-pill fail';}
+  const setItem=(el,iconEl,ok)=>{
+    if(!el)return;
+    el.classList.toggle('pass',!!ok);el.classList.toggle('fail',!ok);
+    if(iconEl)iconEl.textContent=ok?'✓':'○';
+  };
+  setItem(valUpright,valIconUpright,checks.upright);
+  if(valHint)valHint.textContent=(val&&val.reason)||'Stand straight and keep posture aligned to measure…';
+}
+function setAccuracyReady(){ /* compatibility no-op */ }
+function flashScreen(){
+  const fl=document.getElementById('flashOverlay');
+  fl.classList.remove('fire'); void fl.offsetWidth; fl.classList.add('fire');
+}
+
+/* ---- Data tables ---- */
+const IRIS_HEX={Blue:'#5b8fc7',Green:'#5e8c4f',Hazel:'#8a7233',Brown:'#6b4423','Dark Brown':'#3c2414',Gray:'#9aa4ad',Amber:'#c98a2c'};
+const colorPalettes={
+  Blue:{note:'Warm oranges and coppers make blue eyes pop by contrast; anchor the look with a warm navy.',colors:[{name:'Burnt Orange',hex:'#c1673c'},{name:'Copper',hex:'#b8733a'},{name:'Warm Navy',hex:'#1c3252'},{name:'Cream',hex:'#f6ecd6'}]},
+  Green:{note:'Reds, plums and warm camels bring out green eyes.',colors:[{name:'Burgundy',hex:'#7a2e2e'},{name:'Plum',hex:'#5b3a5e'},{name:'Warm Camel',hex:'#a9793f'},{name:'Cream',hex:'#f6ecd6'}]},
+  Hazel:{note:'Hazel shifts with the light — jewel tones like teal and antique gold both flatter it.',colors:[{name:'Deep Teal',hex:'#1f5f5b'},{name:'Aubergine',hex:'#4b2540'},{name:'Antique Gold',hex:'#c9a24b'},{name:'Cream',hex:'#f6ecd6'}]},
+  Brown:{note:'Brown eyes are versatile — cool blues and greens create striking contrast.',colors:[{name:'Emerald',hex:'#2f6b4f'},{name:'Sapphire',hex:'#2b4c8c'},{name:'Cool Teal',hex:'#1f6f78'},{name:'Ivory',hex:'#f6ecd6'}]},
+  'Dark Brown':{note:'Rich jewel tones stand out beautifully against dark brown eyes.',colors:[{name:'Sapphire',hex:'#28407a'},{name:'Emerald',hex:'#245c3f'},{name:'Deep Purple',hex:'#3d2452'},{name:'Ivory',hex:'#f6ecd6'}]},
+  Gray:{note:'Cool, muted tones echo the softness of gray eyes.',colors:[{name:'Charcoal',hex:'#3a3f47'},{name:'Silver',hex:'#b8bec5'},{name:'Cool Blue',hex:'#4a6fa5'},{name:'Soft Pink',hex:'#e7c6c6'}]},
+  Amber:{note:'Earthy greens and warm rust tones complement amber eyes.',colors:[{name:'Moss Green',hex:'#5f6b3a'},{name:'Rust',hex:'#a04e2c'},{name:'Chocolate',hex:'#4a2f1e'},{name:'Cream',hex:'#f6ecd6'}]}
+};
+const torsoTips={
+  'Hourglass':{
+    headline:'Define the Golden Ratio Waist',
+    tips:[
+      'Highlight your natural waistline with wrap silhouettes, belted blazers, and fitted darts.',
+      'V-necks, sweetheart and scoop necklines flatter balanced bust-to-hip proportions.',
+      'A-line and pencil midi skirts trace your natural curves with tailored grace.'
+    ]
+  },
+  'Pear / Triangle':{
+    headline:'Command the Eye Upward',
+    tips:[
+      'Structured shoulders, boatneck collars, and statement sleeves balance wider hip curves.',
+      'Pair brighter or patterned tops with clean, dark straight or wide-leg trousers.',
+      'A-line dresses and fluid palazzos skim gracefully over the lower body.'
+    ]
+  },
+  'Rectangle / Balanced':{
+    headline:'Sculpt Dimensional Curves',
+    tips:[
+      'Cinching belts, peplum jackets, and wrap tops create dynamic waist curvature.',
+      'Dimensional fabric layering and textured knits add depth across a balanced frame.',
+      'Flared or wide-leg bottoms establish effortless golden-ratio proportions.'
+    ]
+  },
+  'Inverted Triangle':{
+    headline:'Balance Athletic Broad Shoulders',
+    tips:[
+      'Wide-leg palazzos and A-line skirts add fluid volume below the waist to harmonize broad shoulders.',
+      'Soft unpadded shoulder lines and plunging V-necklines visually slim the upper clavicle plane.',
+      'Draw visual weight downward with vibrant pants or flared hems.'
+    ]
+  },
+  'Apple / Round':{
+    headline:'Elongate with Empire Vertical Lines',
+    tips:[
+      'Empire waistlines and fluid A-line silhouettes drape gracefully over the midsection.',
+      'Deep V-necklines and vertical monochrome palettes create continuous lengthening lines.',
+      'Showcase slender legs and ankles with tailored cigarette pants and midi hemlines.'
+    ]
+  },
+  'Petite / Compact':{
+    headline:'Architectural Vertical Elongation',
+    tips:[
+      'Cropped jackets hitting at the natural high waist optically elongate the leg axis.',
+      'High-rise straight or wide-leg trousers paired with pointed shoes maximize vertical presence.',
+      'Stick to monochromatic or low-contrast color palettes to prevent visual breaks.'
+    ]
+  },
+  'Mesomorph':{
+    headline:'Accentuate Athletic V-Taper',
+    tips:[
+      'Fitted tailoring and structured single-breasted blazers flatter natural muscular proportions.',
+      'Polos and open camp collars showcase shoulder and chest width without bulk.',
+      'Flat-front tapered chinos balance upper torso definition with clean lower lines.'
+    ]
+  },
+  'Ectomorph':{
+    headline:'Build Torso Depth & Stature',
+    tips:[
+      'Double-breasted jackets, padded shoulders, and horizontal lapels add imposing width.',
+      'Layer with chunky cable knits, turtlenecks, and textured flannel fabrics.',
+      'Straight-leg or slightly relaxed trousers prevent long legs from appearing overly slender.'
+    ]
+  },
+  'Endomorph':{
+    headline:'Streamline Vertical Presence',
+    tips:[
+      'Single-breasted jackets and vertical center seams draw a crisp unbroken eye-line.',
+      'V-neck sweaters and open unbuttoned collars decompress the neck and chest.',
+      'Straight-leg flat-front trousers in dark monochromatic tones elongate the frame.'
+    ]
+  },
+  'Triangle':{
+    headline:'Build Upper Horizon Structure',
+    tips:[
+      'Blazers with shoulder padding and chest pocket details widen the upper frame.',
+      'Layer lighter, textured tops with dark, clean straight trousers.',
+      'Keep footwear minimalist to anchor attention upward.'
+    ]
+  }
+};
+
+/* ---- Math helpers ---- */
+function toRad(d){return d*Math.PI/180;}
+function avg(arr){return arr.reduce((a,b)=>a+b,0)/arr.length;}
+function rgbToHsl(r,g,b){
+  r/=255;g/=255;b/=255;
+  const max=Math.max(r,g,b),min=Math.min(r,g,b),l=(max+min)/2,d=max-min;
+  let h=0,s=0;
+  if(d!==0){s=l>0.5?d/(2-max-min):d/(max+min);switch(max){case r:h=((g-b)/d+(g<b?6:0));break;case g:h=(b-r)/d+2;break;case b:h=(r-g)/d+4;break;}h*=60;}
+  return{h,s:s*100,l:l*100};
+}
+function classifyIris(r,g,b){
+  const{h,s,l}=rgbToHsl(r,g,b);
+  if(s<14) return{name:'Gray',hex:'#9aa4ad'};
+  if(b>r+8&&b>=g) return{name:'Blue',hex:'#5b8fc7'};
+  if(g>r+4&&g>=b) return{name:'Green',hex:'#5e8c4f'};
+  if(l>48&&h>=25&&h<=55&&s>35) return{name:'Amber',hex:'#c98a2c'};
+  if(h>=15&&h<=45&&s>20&&l>=28&&l<=55) return{name:'Hazel',hex:'#8a7233'};
+  if(l<26) return{name:'Dark Brown',hex:'#3c2414'};
+  return{name:'Brown',hex:'#6b4423'};
+}
+function sampleIrisAt(lm){
+  try{sampleCtx.drawImage(video,0,0,sampleCanvas.width,sampleCanvas.height);}catch(e){return null;}
+  const centers=[lm[468],lm[473]],rs=[],gs=[],bs=[];
+  for(const c of centers){
+    if(!c) continue;
+    const cx=Math.round(c.x*sampleCanvas.width),cy=Math.round(c.y*sampleCanvas.height),rad=3;
+    const x0=Math.max(0,cx-rad),y0=Math.max(0,cy-rad),w=Math.min(rad*2,sampleCanvas.width-x0),h=Math.min(rad*2,sampleCanvas.height-y0);
+    if(w<=0||h<=0) continue;
+    let data;try{data=sampleCtx.getImageData(x0,y0,w,h).data;}catch(e){continue;}
+    for(let i=0;i<data.length;i+=4){const r=data[i],g=data[i+1],b=data[i+2],br=(r+g+b)/3;if(br<25||br>235)continue;rs.push(r);gs.push(g);bs.push(b);}
+  }
+  if(!rs.length) return null;
+  return{r:avg(rs),g:avg(gs),b:avg(bs)};
+}
+const FACE_OVAL=[10,338,297,332,284,251,389,356,454,323,361,288,397,365,379,378,400,377,152,148,176,149,150,136,172,58,132,93,234,127,162,21,54,103,67,109,10];
+const LIPS=[61,146,91,181,84,17,314,405,321,375,291,308,324,318,402,317,14,87,178,88,95,78,61];
+const LEFT_EYE=[33,7,163,144,145,153,154,155,133,173,157,158,159,160,161,246,33];
+const RIGHT_EYE=[362,382,381,380,374,373,390,249,263,466,388,387,386,385,384,398,362];
+const NOSE_BRIDGE=[168,6,197,195,5,4,1,2];
+
+function descriptorToTicketId(desc){
+  let hash=0;
+  for(let i=0;i<desc.length;i++){
+    hash=(hash*31+Math.round(desc[i]*10000))|0;
+  }
+  return'NX-'+(hash>>>0).toString(16).toUpperCase().padStart(8,'0').slice(0,6);
+}
+
+function computeFaceMeasurements(lm){
+  const d=(p1,p2)=>Math.hypot((p1.x-p2.x)*overlay.width,(p1.y-p2.y)*overlay.height);
+  const leftEye=lm[468]||{x:(lm[33].x+lm[133].x)/2,y:(lm[33].y+lm[133].y)/2};
+  const rightEye=lm[473]||{x:(lm[362].x+lm[263].x)/2,y:(lm[362].y+lm[263].y)/2};
+  const ipdPx=d(leftEye,rightEye);
+  const scale=ipdPx>10?6.3/ipdPx:0.05;
+  const cheekWidthPx=d(lm[234],lm[454]);
+  const jawWidthPx=d(lm[172],lm[397]);
+  const faceLengthPx=d(lm[10],lm[152]);
+  const foreheadWidthPx=d(lm[103],lm[332]);
+  const widthCm=cheekWidthPx*scale;
+  const lengthCm=faceLengthPx*scale;
+  const lengthRatio=cheekWidthPx>0?faceLengthPx/cheekWidthPx:1.2;
+  const jawRatio=cheekWidthPx>0?jawWidthPx/cheekWidthPx:0.75;
+  const foreheadRatio=cheekWidthPx>0?foreheadWidthPx/cheekWidthPx:0.85;
+
+  let geoShape='Oval';
+  let geoConf=88;
+  if(lengthRatio<1.18&&jawRatio<0.82){
+    geoShape='Round';
+    geoConf=Math.min(98,Math.round(85+(1.18-lengthRatio)*60));
+  }else if(jawRatio>=0.82&&lengthRatio<=1.30){
+    geoShape='Square';
+    geoConf=Math.min(98,Math.round(84+(jawRatio-0.82)*80));
+  }else if(jawRatio<0.70&&foreheadRatio>0.80){
+    geoShape='Heart';
+    geoConf=Math.min(98,Math.round(85+(0.70-jawRatio)*70));
+  }else if(lengthRatio>=1.32&&jawRatio<0.75){
+    geoShape='Diamond';
+    geoConf=Math.min(98,Math.round(86+(lengthRatio-1.32)*50));
+  }else if(lengthRatio>1.25){
+    geoShape='Oval / Long';
+    geoConf=Math.min(98,Math.round(85+(lengthRatio-1.25)*40));
+  }else{
+    geoShape='Round';
+    geoConf=85;
+  }
+
+  let finalShape=geoShape;
+  let confText=geoConf+'% (MediaPipe ML)';
+  if(lastTmPrediction&&lastTmPrediction.confidence>=40){
+    finalShape=lastTmPrediction.shape;
+    confText=lastTmPrediction.confidence+'% (Teachable Machine)';
+  }
+
+  const desc=[
+    ipdPx/Math.max(1,faceLengthPx),
+    cheekWidthPx/Math.max(1,faceLengthPx),
+    jawWidthPx/Math.max(1,cheekWidthPx),
+    foreheadWidthPx/Math.max(1,cheekWidthPx),
+    d(lm[168],lm[2])/Math.max(1,faceLengthPx),
+    d(lm[98],lm[327])/Math.max(1,cheekWidthPx),
+    d(lm[61],lm[291])/Math.max(1,cheekWidthPx),
+    d(leftEye,lm[2])/Math.max(1,faceLengthPx),
+    d(leftEye,lm[152])/Math.max(1,faceLengthPx),
+    d(lm[0],lm[152])/Math.max(1,faceLengthPx),
+    d(lm[133],lm[362])/Math.max(1,cheekWidthPx),
+    d(lm[33],lm[263])/Math.max(1,cheekWidthPx)
+  ];
+
+  return{
+    shape:finalShape,
+    confidence:confText,
+    widthCm:Math.round(widthCm*10)/10,
+    lengthCm:Math.round(lengthCm*10)/10,
+    ipdPx:Math.round(ipdPx),
+    jawRatio:Math.round(jawRatio*100)/100,
+    ticketId:descriptorToTicketId(desc)
+  };
+}
+function midY(a,b){return(a.y+b.y)/2;}
+function getAnkleY(kp){const l=kp.left_ankle,r=kp.right_ankle;if(l&&r&&l.score>0.3&&r.score>0.3)return midY(l,r);if(l&&l.score>0.3)return l.y;if(r&&r.score>0.3)return r.y;return null;}
+function getTorsoShape(kp){
+  if(!kp)return null;
+  const ls=kp.left_shoulder,rs=kp.right_shoulder,lh=kp.left_hip,rh=kp.right_hip;
+  if(!ls||!rs||!lh||!rh||ls.score<0.3||rs.score<0.3||lh.score<0.3||rh.score<0.3)return null;
+  const shoulderW=Math.abs(ls.x-rs.x),hipW=Math.abs(lh.x-rh.x);
+  if(hipW<=0)return null;
+  const ratio=shoulderW/hipW;
+  return{shape:ratio>1.15?'Inverted Triangle':ratio<0.87?'Pear / Triangle':'Rectangle / Balanced',ratio};
+}
+
+/* ---- Camera Manager & Setup ---- */
+let cameraStream = null;
+let mainLoopRunning = false;
+
+function showCameraError(title, sub){
+  const camOverlay = document.getElementById('camErrorOverlay');
+  const camTitle = document.getElementById('camErrorTitle');
+  const camSub = document.getElementById('camErrorSub');
+  if(camTitle) camTitle.textContent = title;
+  if(camSub) camSub.textContent = sub;
+  if(camOverlay) camOverlay.style.display = 'flex';
+  statusEl.textContent = title + ': ' + sub;
+}
+
+async function initCamera(){
+  const camOverlay = document.getElementById('camErrorOverlay');
+  if(camOverlay) camOverlay.style.display = 'none';
+  statusEl.textContent = 'Activating camera…';
+
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    showCameraError('Camera API Not Supported', 'Your browser does not expose webcam access on this context. Please ensure you are opening via localhost or HTTPS in Chrome/Safari.');
+    return;
+  }
+
+  // Stop previous tracks if refreshing
+  if(cameraStream){
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+
+  // Progressive fallback constraints: ideal resolutions, then generic video
+  const constraintOptions = [
+    { video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }, audio: false },
+    { video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }, audio: false },
+    { video: { width: { ideal: 420 }, height: { ideal: 315 }, facingMode: 'user' }, audio: false },
+    { video: { facingMode: 'user' }, audio: false },
+    { video: true, audio: false }
+  ];
+
+  let stream = null;
+  let lastErr = null;
+
+  for(const c of constraintOptions){
+    try{
+      stream = await navigator.mediaDevices.getUserMedia(c);
+      if(stream) break;
+    }catch(e){
+      lastErr = e;
+      console.warn('Camera constraint rejected, trying next fallback:', c, e);
+    }
+  }
+
+  if(!stream){
+    const msg = lastErr ? (lastErr.message || lastErr.name) : 'Permission denied';
+    showCameraError('Camera Access Denied or Unavailable', `${msg}. Click below to grant camera permissions in your browser.`);
+    return;
+  }
+
+  cameraStream = stream;
+  video.srcObject = stream;
+  video.setAttribute('autoplay', '');
+  video.setAttribute('muted', '');
+  video.setAttribute('playsinline', '');
+  video.muted = true;
+  video.playsInline = true;
+
+  // Wait for dimensions with timeout
+  await new Promise(resolve => {
+    if(video.readyState >= 2 && video.videoWidth > 0){
+      resolve();
+      return;
+    }
+    const onLoaded = () => {
+      video.removeEventListener('loadedmetadata', onLoaded);
+      video.removeEventListener('loadeddata', onLoaded);
+      resolve();
+    };
+    video.addEventListener('loadedmetadata', onLoaded);
+    video.addEventListener('loadeddata', onLoaded);
+    setTimeout(resolve, 2000);
+  });
+
+  try{
+    await video.play();
+  }catch(playErr){
+    console.warn('video.play notice:', playErr);
+  }
+
+  const w = video.videoWidth || 640;
+  const h = video.videoHeight || 480;
+  overlay.width = w; overlay.height = h;
+  confettiCv.width = w; confettiCv.height = h;
+  sampleCanvas.width = w; sampleCanvas.height = h;
+  fPx = (h / 2) / Math.tan(toRad(27.5));
+
+  if(camOverlay) camOverlay.style.display = 'none';
+  statusEl.textContent = 'Camera active. Loading AI models…';
+
+  // Start rendering immediately so the user sees live video
+  if(!mainLoopRunning){
+    mainLoopRunning = true;
+    requestAnimationFrame(mainLoop);
+  }
+}
+
+async function setup(){
+  const camRetryBtn = document.getElementById('camRetryBtn');
+  if(camRetryBtn){
+    camRetryBtn.addEventListener('click', () => {
+      initCamera();
+    });
+  }
+
+  await initCamera();
+  goToPhase(1);
+
+  // Load AI models asynchronously in background without blocking camera feed
+  Promise.allSettled([loadPoseModel(), loadMediapipe(), loadTMModel()]).then(results => {
+    const issues = [];
+    if(results[0].status === 'rejected') issues.push('pose');
+    if(results[1].status === 'rejected') issues.push('mediapipe');
+    if(issues.length){
+      statusEl.textContent = 'Models partial (' + issues.join(',') + ') — manual pickers ready.';
+    } else {
+      statusEl.textContent = 'Scanner ready. Step into frame and hold still.';
+    }
+  });
+}
+
+async function loadPoseModel(){
+  statusEl.textContent = 'Loading MoveNet pose model…';
+  try{
+    poseDetector = await poseDetection.createDetector(
+      poseDetection.SupportedModels.MoveNet,
+      { modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING }
+    );
+    console.log('Google MoveNet Lightning loaded successfully.');
+  }catch(e){
+    console.warn('MoveNet load error:', e);
+  }
+  const ASSUMED_VFOV_DEG = 55;
+  if(!exactCalibration || !exactCalibration.active){
+    fPx = (overlay.height / 2) / Math.tan(toRad(ASSUMED_VFOV_DEG / 2));
+    calibrated = false;
+  }
+}
+
+async function loadTMModel(){
+  const modelURL='https://teachablemachine.withgoogle.com/models/bOmzdCH4i/';
+  try{
+    if(window.tmImage){
+      tmModel=await tmImage.load(modelURL+'model.json',modelURL+'metadata.json');
+      tmReady=true;
+      console.log('Teachable Machine face shape model loaded successfully.');
+    }
+  }catch(e){
+    console.warn('Teachable Machine model unavailable, active fallback: MediaPipe 478-point geometric classifier.');
+    tmReady=false;
+  }
+}
+
+async function loadMediapipe(){
+  const CDN='https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14';
+  const vision=await import(CDN);
+  const{FaceLandmarker,FaceDetector,PoseLandmarker,FilesetResolver}=vision;
+  const fr=await FilesetResolver.forVisionTasks(CDN+'/wasm');
+  const mpLandmarker='https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task';
+  const mpDetector='https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.task';
+  const mpPoseLandmarker='https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
+  
+  try{faceLandmarker=await FaceLandmarker.createFromOptions(fr,{baseOptions:{modelAssetPath:mpLandmarker,delegate:'GPU'},runningMode:'VIDEO',numFaces:1});}
+  catch(e){faceLandmarker=await FaceLandmarker.createFromOptions(fr,{baseOptions:{modelAssetPath:mpLandmarker,delegate:'CPU'},runningMode:'VIDEO',numFaces:1});}
+  landmarkerReady=true;
+
+  try{faceDetector=await FaceDetector.createFromOptions(fr,{baseOptions:{modelAssetPath:mpDetector,delegate:'GPU'},runningMode:'VIDEO'});detectorReady=true;}
+  catch(e){
+    try{faceDetector=await FaceDetector.createFromOptions(fr,{baseOptions:{modelAssetPath:mpDetector,delegate:'CPU'},runningMode:'VIDEO'});detectorReady=true;}
+    catch(e2){console.warn('FaceDetector fallback active:',e2);}
+  }
+
+  try{
+    poseLandmarker=await PoseLandmarker.createFromOptions(fr,{
+      baseOptions:{modelAssetPath:mpPoseLandmarker,delegate:'GPU'},
+      runningMode:'VIDEO',
+      numPoses:1
+    });
+    poseLandmarkerReady=true;
+    console.log('MediaPipe PoseLandmarker (GPU) loaded successfully.');
+  }catch(e){
+    try{
+      poseLandmarker=await PoseLandmarker.createFromOptions(fr,{
+        baseOptions:{modelAssetPath:mpPoseLandmarker,delegate:'CPU'},
+        runningMode:'VIDEO',
+        numPoses:1
+      });
+      poseLandmarkerReady=true;
+      console.log('MediaPipe PoseLandmarker (CPU) loaded successfully.');
+    }catch(e2){
+      console.warn('MediaPipe PoseLandmarker fallback active:',e2);
+      poseLandmarkerReady=false;
+    }
+  }
+}
+
+function drawPath(indices,lm,close=false){
+  if(!indices.length)return;
+  ctx.beginPath();
+  const first=lm[indices[0]];if(!first)return;
+  ctx.moveTo(first.x*overlay.width,first.y*overlay.height);
+  for(let i=1;i<indices.length;i++){
+    const pt=lm[indices[i]];if(pt)ctx.lineTo(pt.x*overlay.width,pt.y*overlay.height);
+  }
+  if(close)ctx.closePath();
+  ctx.stroke();
+}
+
+function drawFaceMeshOverlay(lm){
+  // Futuristic cyan face mesh contours
+  ctx.strokeStyle='rgba(0,212,255,0.40)';ctx.lineWidth=1.2;
+  drawPath(FACE_OVAL,lm,true);
+  drawPath(LIPS,lm,true);
+  drawPath(LEFT_EYE,lm,true);
+  drawPath(RIGHT_EYE,lm,true);
+  drawPath(NOSE_BRIDGE,lm,false);
+
+  // Mesh landmark dots (every 4th point for clean cyber aesthetic)
+  ctx.fillStyle='rgba(0,212,255,0.70)';
+  for(let i=0;i<lm.length;i+=4){
+    const p=lm[i];if(!p)continue;
+    ctx.beginPath();ctx.arc(p.x*overlay.width,p.y*overlay.height,1.1,0,Math.PI*2);ctx.fill();
+  }
+
+  // Dual Iris tracking rings with pulsing center
+  ctx.strokeStyle='rgba(0,255,200,0.95)';ctx.lineWidth=1.8;
+  [lm[468],lm[473]].forEach(p=>{
+    if(!p)return;
+    const px=p.x*overlay.width,py=p.y*overlay.height;
+    ctx.beginPath();ctx.arc(px,py,5,0,Math.PI*2);ctx.stroke();
+    ctx.beginPath();ctx.arc(px,py,1.5,0,Math.PI*2);ctx.fillStyle='#00ffc8';ctx.fill();
+  });
+}
+
+function drawBoundingBox(box,score){
+  const{x,y,width,height}=box;
+  ctx.strokeStyle='rgba(0,212,255,0.85)';ctx.lineWidth=1.5;
+  const len=Math.min(20,width*0.18);
+  ctx.beginPath();
+  ctx.moveTo(x,y+len);ctx.lineTo(x,y);ctx.lineTo(x+len,y);
+  ctx.moveTo(x+width-len,y);ctx.lineTo(x+width,y);ctx.lineTo(x+width,y+len);
+  ctx.moveTo(x+width,y+height-len);ctx.lineTo(x+width,y+height);ctx.lineTo(x+width-len,y+height);
+  ctx.moveTo(x+len,y+height);ctx.lineTo(x,y+height);ctx.lineTo(x,y+height-len);
+  ctx.stroke();
+
+  ctx.fillStyle='rgba(3,15,38,0.78)';ctx.fillRect(x,Math.max(0,y-20),138,18);
+  ctx.strokeStyle='rgba(0,212,255,0.45)';ctx.strokeRect(x,Math.max(0,y-20),138,18);
+  ctx.fillStyle='#00d4ff';ctx.font='700 9px Orbitron, monospace';
+  ctx.fillText('FACE ML // '+(score?Math.round(score*100)+'%':'TRACKING'),x+6,Math.max(12,y-8));
+}
+
+async function classifyFaceShapeWithTM(){
+  if(!tmReady||!tmModel||tmClassifying)return;
+  tmClassifying=true;
+  try{
+    const predictions=await tmModel.predict(video);
+    if(predictions&&predictions.length){
+      predictions.sort((a,b)=>b.probability-a.probability);
+      const top=predictions[0];
+      lastTmPrediction={
+        shape:top.className,
+        confidence:Math.round(top.probability*100)
+      };
+    }
+  }catch(e){}finally{tmClassifying=false;}
+}
+
+/* ---- Main loop ---- */
+function mainLoop(){
+  if(video.videoWidth > 0 && overlay.width !== video.videoWidth){
+    overlay.width = video.videoWidth;
+    overlay.height = video.videoHeight;
+    confettiCv.width = video.videoWidth;
+    confettiCv.height = video.videoHeight;
+    sampleCanvas.width = video.videoWidth;
+    sampleCanvas.height = video.videoHeight;
+    fPx = (overlay.height / 2) / Math.tan(toRad(27.5));
+  }
+  if(currentPhase === 1) faceLoopTick();
+  else if(currentPhase === 2) poseLoopTick();
+  drawConfetti();
+  requestAnimationFrame(mainLoop);
+}
+
+/* ---- Face loop ---- */
+function faceLoopTick(){
+  if(!landmarkerReady || video.readyState < 2 || !video.videoWidth) return;
+  let now = performance.now();
+  if(now <= lastFaceTimestamp) {
+    now = lastFaceTimestamp + 1;
+  }
+  lastFaceTimestamp = now;
+
+  let result;
+  try{ result = faceLandmarker.detectForVideo(video, now); }
+  catch(e){ return; }
+  ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+  let detBox=null,detScore=null;
+  if(detectorReady&&faceDetector){
+    try{
+      const dResult=faceDetector.detectForVideo(video,now);
+      if(dResult&&dResult.detections&&dResult.detections.length){
+        const det=dResult.detections[0];
+        const bb=det.boundingBox;
+        if(bb){
+          detBox={x:bb.originX,y:bb.originY,width:bb.width,height:bb.height};
+          detScore=det.categories&&det.categories[0]?det.categories[0].score:0.95;
+        }
+      }
+    }catch(e){}
+  }
+
+  if(result&&result.faceLandmarks&&result.faceLandmarks.length){
+    const lm=result.faceLandmarks[0];
+    lastFaceMeshLandmarks = lm;
+
+    // Compute bounding box from landmarks if detector wasn't available
+    if(!detBox){
+      let minX=1,maxX=0,minY=1,maxY=0;
+      lm.forEach(p=>{if(p.x<minX)minX=p.x;if(p.x>maxX)maxX=p.x;if(p.y<minY)minY=p.y;if(p.y>maxY)maxY=p.y;});
+      detBox={x:Math.max(0,(minX-0.04)*overlay.width),y:Math.max(0,(minY-0.06)*overlay.height),width:Math.min(overlay.width,(maxX-minX+0.08)*overlay.width),height:Math.min(overlay.height,(maxY-minY+0.09)*overlay.height)};
+      detScore=0.96;
+    }
+
+    // Draw futuristic ML face detection box
+    drawBoundingBox(detBox,detScore);
+
+    // Draw MediaPipe face mesh connection contours and iris trackers
+    drawFaceMeshOverlay(lm);
+
+    // Periodically run Teachable Machine classification (approx 3-4x per sec)
+    tmClassifyCounter++;
+    if(tmClassifyCounter%14===0&&tmReady&&!faceLocked){
+      classifyFaceShapeWithTM();
+    }
+
+    if(!faceLocked){
+      const nose=lm[1];faceShortBuf.push({x:nose.x,y:nose.y});
+      if(faceShortBuf.length>FACE_SHORT_LEN)faceShortBuf.shift();
+      let stable=false;
+      if(faceShortBuf.length===FACE_SHORT_LEN){const xs=faceShortBuf.map(p=>p.x),ys=faceShortBuf.map(p=>p.y);stable=Math.max(Math.max(...xs)-Math.min(...xs),Math.max(...ys)-Math.min(...ys))<=FACE_STABLE_TOL;}
+      if(stable){
+        faceStableCount++;
+        const s=sampleIrisAt(lm);if(s)irisColorAccum.push(s);
+        statusEl.textContent='Scanning… '+Math.min(100,Math.round(faceStableCount/FACE_STREAK_TARGET*100))+'%';
+        statusEl.classList.remove('win');
+      }else{
+        faceStableCount=Math.max(0,faceStableCount-2);
+        statusEl.textContent='Hold still — keep your face centered…';
+        statusEl.classList.remove('win');
+      }
+      setMeter(Math.min(1,faceStableCount/FACE_STREAK_TARGET)*100);
+      if(faceStableCount>=FACE_STREAK_TARGET)lockFace(lm);
+    }
+  } else{
+    faceShortBuf=[];
+    if(!faceLocked){
+      statusEl.textContent='No face detected — step into the scanner.';
+      statusEl.classList.remove('win');
+    }
+  }
+}
+
+async function lockFace(lm){
+  faceLocked=true;statusEl.textContent='Locking bio-scan…';
+  const fsr=computeFaceMeasurements(lm);
+  let irisResult=null;
+  if(irisColorAccum.length){
+    irisResult=classifyIris(avg(irisColorAccum.map(s=>s.r)),avg(irisColorAccum.map(s=>s.g)),avg(irisColorAccum.map(s=>s.b)));
+  }
+  if(irisResult){
+    state.face.iris=irisResult.name;state.face.irisHex=irisResult.hex;irisSelect.value=irisResult.name;
+    irisGrid.querySelectorAll('.nx-iris-chip').forEach(c=>c.classList.toggle('selected',c.dataset.iris===irisResult.name));
+    continueToHeightBtn.disabled=false;
+  }
+  if(fsr){
+    state.face.shape=fsr.shape;state.face.widthCm=fsr.widthCm;state.face.lengthCm=fsr.lengthCm;state.face.ticketId=fsr.ticketId;
+    state.face.confidence=fsr.confidence;state.face.ipdPx=fsr.ipdPx;state.face.jawRatio=fsr.jawRatio;
+    faceShapeOut.textContent=fsr.shape;
+    if(confOut)confOut.textContent=fsr.confidence;
+    faceWidthOut.textContent=fsr.widthCm?fsr.widthCm.toFixed(1)+' cm':'—';
+    faceLengthOut.textContent=fsr.lengthCm?fsr.lengthCm.toFixed(1)+' cm':'—';
+    if(ipdOut)ipdOut.textContent=fsr.ipdPx?fsr.ipdPx+' px (~6.3 cm)':'—';
+    if(jawRatioOut)jawRatioOut.textContent=fsr.jawRatio?fsr.jawRatio.toFixed(2):'—';
+    ticketIdOut.textContent=fsr.ticketId;
+    faceStatsBox.style.display='block';
+    continueToHeightBtn.disabled=false;
+  }
+  bell.classList.add('ringing');setTimeout(()=>bell.classList.remove('ringing'),1600);
+  ding();burstConfetti();flashScreen();addXP(100);
+  setQuest('Bio-scan complete','Mission 1 cleared. Continue to the Height Quest.',1);
+  statusEl.textContent='+100 XP — Scan locked! Continue to Height Quest →';statusEl.classList.add('win');
+}
+
+/* ============================================================
+   TALL ORDER — MULTI-LANDMARK ANTHROPOMETRIC PIPELINE
+   MediaPipe Pose Landmarker (33 pts) + Face Landmarker (478 pts)
+   + MoveNet Lightning Instant Fallback
+   ============================================================ */
+
+const POSE = {
+  NOSE: 0,
+  LEFT_EYE_INNER: 1, LEFT_EYE: 2, LEFT_EYE_OUTER: 3,
+  RIGHT_EYE_INNER: 4, RIGHT_EYE: 5, RIGHT_EYE_OUTER: 6,
+  LEFT_EAR: 7, RIGHT_EAR: 8,
+  MOUTH_LEFT: 9, MOUTH_RIGHT: 10,
+  LEFT_SHOULDER: 11, RIGHT_SHOULDER: 12,
+  LEFT_ELBOW: 13, RIGHT_ELBOW: 14,
+  LEFT_WRIST: 15, RIGHT_WRIST: 16,
+  LEFT_PINKY: 17, RIGHT_PINKY: 18,
+  LEFT_INDEX: 19, RIGHT_INDEX: 20,
+  LEFT_THUMB: 21, RIGHT_THUMB: 22,
+  LEFT_HIP: 23, RIGHT_HIP: 24,
+  LEFT_KNEE: 25, RIGHT_KNEE: 26,
+  LEFT_ANKLE: 27, RIGHT_ANKLE: 28,
+  LEFT_HEEL: 29, RIGHT_HEEL: 30,
+  LEFT_FOOT_INDEX: 31, RIGHT_FOOT_INDEX: 32
+};
+
+const MEDIAPIPE_POSE_CONNECTIONS = [
+  // Head & Face
+  [0, 1], [1, 2], [2, 3], [3, 7],
+  [0, 4], [4, 5], [5, 6], [6, 8],
+  [9, 10],
+  // Torso
+  [11, 12], [11, 23], [12, 24], [23, 24],
+  // Left Arm
+  [11, 13], [13, 15], [15, 17], [15, 19], [15, 21], [17, 19],
+  // Right Arm
+  [12, 14], [14, 16], [16, 18], [16, 20], [16, 22], [18, 20],
+  // Left Leg
+  [23, 25], [25, 27], [27, 29], [29, 31], [27, 31],
+  // Right Leg
+  [24, 26], [26, 28], [28, 30], [30, 32], [28, 32]
+];
+
+const MOVENET_LIMBS = [
+  ['left_shoulder','right_shoulder'],
+  ['left_shoulder','left_hip'],
+  ['right_shoulder','right_hip'],
+  ['left_hip','right_hip'],
+  ['left_shoulder','left_elbow'],
+  ['left_elbow','left_wrist'],
+  ['right_shoulder','right_elbow'],
+  ['right_elbow','right_wrist'],
+  ['left_hip','left_knee'],
+  ['left_knee','left_ankle'],
+  ['right_hip','right_knee'],
+  ['right_knee','right_ankle']
+];
+
+/* ------------------------------------------------------------
+   BASIC GEOMETRY
+   ------------------------------------------------------------ */
+
+function distance3D(a, b) {
+  if (!a || !b) return null;
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  const dz = (a.z || 0) - (b.z || 0);
+  return Math.sqrt(dx * dx + dy * dy + dz * dz);
+}
+
+function verticalDistance(a, b) {
+  if (!a || !b) return null;
+  return Math.abs(a.y - b.y);
+}
+
+function midpoint(a, b) {
+  if (!a || !b) return null;
+  return {
+    x: (a.x + b.x) / 2,
+    y: (a.y + b.y) / 2,
+    z: ((a.z || 0) + (b.z || 0)) / 2
+  };
+}
+
+function measure(a, b, scale = 100) {
+  const d = distance3D(a, b);
+  if (d === null) return null;
+  return d * scale;
+}
+
+/* ------------------------------------------------------------
+   CROWN ESTIMATION (HYBRID: FACEMESH FOREHEAD + POSE EARS)
+   ------------------------------------------------------------ */
+
+function estimateCrown(poseLandmarks, faceMeshLandmarks = null) {
+  if (!poseLandmarks) return null;
+  const nose = poseLandmarks[POSE.NOSE];
+  const leftEar = poseLandmarks[POSE.LEFT_EAR];
+  const rightEar = poseLandmarks[POSE.RIGHT_EAR];
+
+  if (!nose) return null;
+
+  let headCenter;
+  if (leftEar && rightEar) {
+    headCenter = midpoint(leftEar, rightEar);
+  } else {
+    headCenter = {
+      x: nose.x,
+      y: nose.y,
+      z: nose.z || 0
+    };
+  }
+
+  // Refinement 1: Face mesh uppermost boundary (Landmark 10 hairline apex)
+  if (faceMeshLandmarks && faceMeshLandmarks.length >= 468) {
+    const topForehead = faceMeshLandmarks[10];
+    const chin = faceMeshLandmarks[152];
+    if (topForehead && chin) {
+      const faceHeightNorm = Math.abs(chin.y - topForehead.y);
+      if (Math.abs(nose.y) <= 1.5) {
+        // Normalized coordinate space
+        const cranialDomeExtrap = faceHeightNorm * 0.28;
+        return {
+          x: topForehead.x,
+          y: topForehead.y - cranialDomeExtrap,
+          z: topForehead.z || headCenter.z
+        };
+      }
+    }
+  }
+
+  // Refinement 2: Pose geometry estimation via ear separation & facial proportions
+  let earWidth = null;
+  if (leftEar && rightEar) {
+    earWidth = distance3D(leftEar, rightEar);
+  }
+  const estimatedHeadHeight = earWidth ? earWidth * 0.82 : 0.12;
+
+  return {
+    x: headCenter.x,
+    y: headCenter.y - estimatedHeadHeight,
+    z: headCenter.z
+  };
+}
+
+/* ------------------------------------------------------------
+   HEIGHT TEMPORAL FILTER
+   ------------------------------------------------------------ */
+
+class HeightFilter {
+  constructor(maxSamples = 15) {
+    this.samples = [];
+    this.maxSamples = maxSamples;
+  }
+
+  add(value) {
+    if (value === null || !Number.isFinite(value) || value <= 0) return;
+    this.samples.push(value);
+    if (this.samples.length > this.maxSamples) {
+      this.samples.shift();
+    }
+  }
+
+  getMedian() {
+    if (!this.samples.length) return null;
+    const sorted = [...this.samples].sort((a, b) => a - b);
+    const middle = Math.floor(sorted.length / 2);
+    if (sorted.length % 2 === 0) {
+      return (sorted[middle - 1] + sorted[middle]) / 2;
+    }
+    return sorted[middle];
+  }
+
+  getAverage() {
+    if (!this.samples.length) return null;
+    return this.samples.reduce((a, b) => a + b, 0) / this.samples.length;
+  }
+
+  getSpread() {
+    if (this.samples.length < 2) return 0;
+    return Math.max(...this.samples) - Math.min(...this.samples);
+  }
+
+  count() {
+    return this.samples.length;
+  }
+
+  reset() {
+    this.samples = [];
+  }
+}
+
+const heightFilter = new HeightFilter(15);
+
+/* ------------------------------------------------------------
+   SCALE CALIBRATION
+   ------------------------------------------------------------ */
+
+function calculateScaleFromIPD(measuredIPD, knownIPD = 6.3) {
+  if (!measuredIPD || measuredIPD <= 0) return 1;
+  return knownIPD / measuredIPD;
+}
+
+/* ------------------------------------------------------------
+   BODY MEASUREMENTS ENGINE
+   ------------------------------------------------------------ */
+
+function calculateBodyMeasurements(landmarks, scale = 100, faceMeshLandmarks = null) {
+  if (!landmarks || landmarks.length < 17) {
+    return null;
+  }
+
+  const p = landmarks;
+  const crown = estimateCrown(p, faceMeshLandmarks);
+
+  const shoulderMid = (p[POSE.LEFT_SHOULDER] && p[POSE.RIGHT_SHOULDER])
+    ? midpoint(p[POSE.LEFT_SHOULDER], p[POSE.RIGHT_SHOULDER])
+    : null;
+
+  const hipMid = (p[POSE.LEFT_HIP] && p[POSE.RIGHT_HIP])
+    ? midpoint(p[POSE.LEFT_HIP], p[POSE.RIGHT_HIP])
+    : null;
+
+  /* =========================
+     HEAD
+     ========================= */
+  const crownToNose = crown && p[POSE.NOSE]
+    ? measure(crown, p[POSE.NOSE], scale)
+    : null;
+
+  /* =========================
+     SHOULDERS & TORSO
+     ========================= */
+  const shoulderWidth = (p[POSE.LEFT_SHOULDER] && p[POSE.RIGHT_SHOULDER])
+    ? measure(p[POSE.LEFT_SHOULDER], p[POSE.RIGHT_SHOULDER], scale)
+    : null;
+
+  const torsoLength = (shoulderMid && hipMid)
+    ? measure(shoulderMid, hipMid, scale)
+    : null;
+
+  const hipWidth = (p[POSE.LEFT_HIP] && p[POSE.RIGHT_HIP])
+    ? measure(p[POSE.LEFT_HIP], p[POSE.RIGHT_HIP], scale)
+    : null;
+
+  /* =========================
+     ARMS
+     ========================= */
+  const leftUpperArm = (p[POSE.LEFT_SHOULDER] && p[POSE.LEFT_ELBOW])
+    ? measure(p[POSE.LEFT_SHOULDER], p[POSE.LEFT_ELBOW], scale) : null;
+  const leftForearm = (p[POSE.LEFT_ELBOW] && p[POSE.LEFT_WRIST])
+    ? measure(p[POSE.LEFT_ELBOW], p[POSE.LEFT_WRIST], scale) : null;
+  const leftHand = (p[POSE.LEFT_WRIST] && (p[POSE.LEFT_INDEX] || p[POSE.LEFT_PINKY]))
+    ? measure(p[POSE.LEFT_WRIST], p[POSE.LEFT_INDEX] || p[POSE.LEFT_PINKY], scale) : null;
+
+  const rightUpperArm = (p[POSE.RIGHT_SHOULDER] && p[POSE.RIGHT_ELBOW])
+    ? measure(p[POSE.RIGHT_SHOULDER], p[POSE.RIGHT_ELBOW], scale) : null;
+  const rightForearm = (p[POSE.RIGHT_ELBOW] && p[POSE.RIGHT_WRIST])
+    ? measure(p[POSE.RIGHT_ELBOW], p[POSE.RIGHT_WRIST], scale) : null;
+  const rightHand = (p[POSE.RIGHT_WRIST] && (p[POSE.RIGHT_INDEX] || p[POSE.RIGHT_PINKY]))
+    ? measure(p[POSE.RIGHT_WRIST], p[POSE.RIGHT_INDEX] || p[POSE.RIGHT_PINKY], scale) : null;
+
+  const leftArm = (leftUpperArm !== null && leftForearm !== null)
+    ? (leftUpperArm + leftForearm + (leftHand || 0)) : null;
+
+  const rightArm = (rightUpperArm !== null && rightForearm !== null)
+    ? (rightUpperArm + rightForearm + (rightHand || 0)) : null;
+
+  const armSpan = (p[POSE.LEFT_INDEX] && p[POSE.RIGHT_INDEX])
+    ? measure(p[POSE.LEFT_INDEX], p[POSE.RIGHT_INDEX], scale)
+    : (p[POSE.LEFT_WRIST] && p[POSE.RIGHT_WRIST])
+      ? measure(p[POSE.LEFT_WRIST], p[POSE.RIGHT_WRIST], scale) * 1.2
+      : (leftArm && rightArm && shoulderWidth)
+        ? (leftArm + rightArm + shoulderWidth) : null;
+
+  /* =========================
+     LEGS
+     ========================= */
+  const leftThigh = (p[POSE.LEFT_HIP] && p[POSE.LEFT_KNEE])
+    ? measure(p[POSE.LEFT_HIP], p[POSE.LEFT_KNEE], scale) : null;
+  const leftShin = (p[POSE.LEFT_KNEE] && p[POSE.LEFT_ANKLE])
+    ? measure(p[POSE.LEFT_KNEE], p[POSE.LEFT_ANKLE], scale) : null;
+  const leftFoot = (p[POSE.LEFT_HEEL] && p[POSE.LEFT_FOOT_INDEX])
+    ? measure(p[POSE.LEFT_HEEL], p[POSE.LEFT_FOOT_INDEX], scale)
+    : (leftShin ? leftShin * 0.62 : null);
+
+  const rightThigh = (p[POSE.RIGHT_HIP] && p[POSE.RIGHT_KNEE])
+    ? measure(p[POSE.RIGHT_HIP], p[POSE.RIGHT_KNEE], scale) : null;
+  const rightShin = (p[POSE.RIGHT_KNEE] && p[POSE.RIGHT_ANKLE])
+    ? measure(p[POSE.RIGHT_KNEE], p[POSE.RIGHT_ANKLE], scale) : null;
+  const rightFoot = (p[POSE.RIGHT_HEEL] && p[POSE.RIGHT_FOOT_INDEX])
+    ? measure(p[POSE.RIGHT_HEEL], p[POSE.RIGHT_FOOT_INDEX], scale)
+    : (rightShin ? rightShin * 0.62 : null);
+
+  const leftLeg = (leftThigh !== null && leftShin !== null)
+    ? (leftThigh + leftShin + (leftFoot ? leftFoot * 0.32 : 0)) : null;
+
+  const rightLeg = (rightThigh !== null && rightShin !== null)
+    ? (rightThigh + rightShin + (rightFoot ? rightFoot * 0.32 : 0)) : null;
+
+  /* =========================
+     CROWN → HEELS & TOES (PRIMARY VERTICAL STATURE)
+     ========================= */
+  const leftHeelPt = p[POSE.LEFT_HEEL] || p[POSE.LEFT_ANKLE];
+  const rightHeelPt = p[POSE.RIGHT_HEEL] || p[POSE.RIGHT_ANKLE];
+  const leftToePt = p[POSE.LEFT_FOOT_INDEX] || leftHeelPt;
+  const rightToePt = p[POSE.RIGHT_FOOT_INDEX] || rightHeelPt;
+
+  const crownToLeftHeel = (crown && leftHeelPt)
+    ? verticalDistance(crown, leftHeelPt) * scale : null;
+
+  const crownToRightHeel = (crown && rightHeelPt)
+    ? verticalDistance(crown, rightHeelPt) * scale : null;
+
+  const crownToLeftToe = (crown && leftToePt)
+    ? verticalDistance(crown, leftToePt) * scale : null;
+
+  const crownToRightToe = (crown && rightToePt)
+    ? verticalDistance(crown, rightToePt) * scale : null;
+
+  /* =========================
+     HEIGHT ESTIMATES & SANITY CHECKS
+     ========================= */
+  const heightEstimates = [crownToLeftHeel, crownToRightHeel].filter(v => v !== null && Number.isFinite(v) && v > 0);
+
+  const rawHeight = heightEstimates.length
+    ? (heightEstimates.reduce((a, b) => a + b, 0) / heightEstimates.length)
+    : null;
+
+  const avgLeg = (leftLeg && rightLeg) ? (leftLeg + rightLeg) / 2 : (leftLeg || rightLeg);
+  const segmentSum = (torsoLength && avgLeg) ? (torsoLength + avgLeg + (crownToNose || 15)) : null;
+
+  // Biometric consistency score:
+  let confidenceScore = 82;
+  if (crownToLeftHeel && crownToRightHeel) {
+    const legDiff = Math.abs(crownToLeftHeel - crownToRightHeel);
+    if (legDiff < 4.5) confidenceScore += 8;
+    else if (legDiff > 12) confidenceScore -= 12;
+  }
+  if (shoulderWidth && hipWidth && hipWidth > 0) {
+    const ratio = shoulderWidth / hipWidth;
+    if (ratio >= 0.78 && ratio <= 1.55) confidenceScore += 5;
+  }
+  if (rawHeight && segmentSum) {
+    const ratio = rawHeight / segmentSum;
+    if (ratio >= 0.88 && ratio <= 1.05) confidenceScore += 5;
+    else if (ratio < 0.82) confidenceScore -= 18; // Posture slouched/seated
+  }
+  confidenceScore = Math.max(35, Math.min(99, Math.round(confidenceScore)));
+
+  return {
+    crown,
+    head: { crownToNose },
+    shoulders: { shoulderWidth },
+    torso: { torsoLength },
+    hips: { hipWidth },
+    arms: {
+      left: { upperArm: leftUpperArm, forearm: leftForearm, hand: leftHand, total: leftArm },
+      right: { upperArm: rightUpperArm, forearm: rightForearm, hand: rightHand, total: rightArm },
+      armSpan
+    },
+    legs: {
+      left: { thigh: leftThigh, shin: leftShin, foot: leftFoot, total: leftLeg },
+      right: { thigh: rightThigh, shin: rightShin, foot: rightFoot, total: rightLeg }
+    },
+    height: {
+      crownToLeftHeel,
+      crownToRightHeel,
+      crownToLeftToe,
+      crownToRightToe,
+      rawHeight,
+      segmentSum
+    },
+    confidence: confidenceScore
+  };
+}
+
+/* ------------------------------------------------------------
+   CALCULATE FINAL HEIGHT & DISPLAY MEASUREMENTS
+   ------------------------------------------------------------ */
+
+function calculateFinalHeight(profile) {
+  if (!profile || !profile.height) return null;
+  const values = [
+    profile.height.crownToLeftHeel,
+    profile.height.crownToRightHeel
+  ].filter(v => v !== null && Number.isFinite(v) && v > 50 && v < 260);
+
+  if (!values.length) {
+    if (profile.height.rawHeight && profile.height.rawHeight > 50 && profile.height.rawHeight < 260) {
+      return profile.height.rawHeight;
+    }
+    return null;
+  }
+
+  const sorted = [...values].sort((a, b) => a - b);
+  const middle = Math.floor(sorted.length / 2);
+  let height;
+  if (sorted.length % 2 === 0) {
+    height = (sorted[middle - 1] + sorted[middle]) / 2;
+  } else {
+    height = sorted[middle];
+  }
+  return height;
+}
+
+function getDisplayMeasurements(profile) {
+  if (!profile) return null;
+  const avgCrownHeel = (profile.height.crownToLeftHeel && profile.height.crownToRightHeel)
+    ? (profile.height.crownToLeftHeel + profile.height.crownToRightHeel) / 2
+    : (profile.height.crownToLeftHeel || profile.height.crownToRightHeel || profile.height.rawHeight);
+
+  const avgLeg = (profile.legs.left.total && profile.legs.right.total)
+    ? (profile.legs.left.total + profile.legs.right.total) / 2
+    : (profile.legs.left.total || profile.legs.right.total);
+
+  const avgArm = (profile.arms.left.total && profile.arms.right.total)
+    ? (profile.arms.left.total + profile.arms.right.total) / 2
+    : (profile.arms.left.total || profile.arms.right.total);
+
+  return {
+    height: profile.height.rawHeight,
+    crownToHeel: avgCrownHeel,
+    armSpan: profile.arms.armSpan,
+    shoulderWidth: profile.shoulders.shoulderWidth,
+    hipWidth: profile.hips.hipWidth,
+    torso: profile.torso.torsoLength,
+    leftLeg: profile.legs.left.total,
+    rightLeg: profile.legs.right.total,
+    avgLeg: avgLeg,
+    leftArm: profile.arms.left.total,
+    rightArm: profile.arms.right.total,
+    avgArm: avgArm,
+    confidence: profile.confidence
+  };
+}
+
+function updateAnthroUI(profile) {
+  const card = document.getElementById('anthroCard');
+  if(!card) return;
+  if(!profile){
+    card.style.display = 'none';
+    return;
+  }
+  card.style.display = 'block';
+  const disp = getDisplayMeasurements(profile);
+
+  const elCh = document.getElementById('anthroCrownHeelOut');
+  if(elCh) elCh.textContent = disp.crownToHeel ? `${disp.crownToHeel.toFixed(1)} cm` : '—';
+
+  const elSpan = document.getElementById('anthroArmSpanOut');
+  if(elSpan) elSpan.textContent = disp.armSpan ? `${disp.armSpan.toFixed(1)} cm` : '—';
+
+  const elSh = document.getElementById('anthroShoulderOut');
+  if(elSh) elSh.textContent = disp.shoulderWidth ? `${disp.shoulderWidth.toFixed(1)} cm` : '—';
+
+  const elHip = document.getElementById('anthroHipOut');
+  if(elHip) elHip.textContent = disp.hipWidth ? `${disp.hipWidth.toFixed(1)} cm` : '—';
+
+  const elTorso = document.getElementById('anthroTorsoOut');
+  if(elTorso) elTorso.textContent = disp.torso ? `${disp.torso.toFixed(1)} cm` : '—';
+
+  const elLeg = document.getElementById('anthroLegOut');
+  if(elLeg) elLeg.textContent = disp.avgLeg ? `${disp.avgLeg.toFixed(1)} cm` : '—';
+
+  const elArm = document.getElementById('anthroArmOut');
+  if(elArm) elArm.textContent = disp.avgArm ? `${disp.avgArm.toFixed(1)} cm` : '—';
+
+  const elH = document.getElementById('anthroHeightOut');
+  if(elH) elH.textContent = disp.height ? `${disp.height.toFixed(1)} cm` : '—';
+
+  const elConf = document.getElementById('anthroConfBadge');
+  if(elConf){
+    elConf.textContent = `${disp.confidence}% CONF`;
+    elConf.className = 'nx-val-pill ' + (disp.confidence >= 80 ? 'pass' : 'warn');
+  }
+}
+
+/* ------------------------------------------------------------
+   MOVENET 17-KEYPOINT TO 33-POSE ADAPTER
+   ------------------------------------------------------------ */
+
+function convertMoveNetToPoseLandmarks(kp) {
+  if (!kp) return null;
+  const p = new Array(33).fill(null);
+  p[POSE.NOSE] = kp.nose ? { x: kp.nose.x, y: kp.nose.y, z: 0, score: kp.nose.score } : null;
+  p[POSE.LEFT_EYE] = kp.left_eye ? { x: kp.left_eye.x, y: kp.left_eye.y, z: 0, score: kp.left_eye.score } : null;
+  p[POSE.RIGHT_EYE] = kp.right_eye ? { x: kp.right_eye.x, y: kp.right_eye.y, z: 0, score: kp.right_eye.score } : null;
+  p[POSE.LEFT_EAR] = kp.left_ear ? { x: kp.left_ear.x, y: kp.left_ear.y, z: 0, score: kp.left_ear.score } : null;
+  p[POSE.RIGHT_EAR] = kp.right_ear ? { x: kp.right_ear.x, y: kp.right_ear.y, z: 0, score: kp.right_ear.score } : null;
+  p[POSE.LEFT_SHOULDER] = kp.left_shoulder ? { x: kp.left_shoulder.x, y: kp.left_shoulder.y, z: 0, score: kp.left_shoulder.score } : null;
+  p[POSE.RIGHT_SHOULDER] = kp.right_shoulder ? { x: kp.right_shoulder.x, y: kp.right_shoulder.y, z: 0, score: kp.right_shoulder.score } : null;
+  p[POSE.LEFT_ELBOW] = kp.left_elbow ? { x: kp.left_elbow.x, y: kp.left_elbow.y, z: 0, score: kp.left_elbow.score } : null;
+  p[POSE.RIGHT_ELBOW] = kp.right_elbow ? { x: kp.right_elbow.x, y: kp.right_elbow.y, z: 0, score: kp.right_elbow.score } : null;
+  p[POSE.LEFT_WRIST] = kp.left_wrist ? { x: kp.left_wrist.x, y: kp.left_wrist.y, z: 0, score: kp.left_wrist.score } : null;
+  p[POSE.RIGHT_WRIST] = kp.right_wrist ? { x: kp.right_wrist.x, y: kp.right_wrist.y, z: 0, score: kp.right_wrist.score } : null;
+  p[POSE.LEFT_HIP] = kp.left_hip ? { x: kp.left_hip.x, y: kp.left_hip.y, z: 0, score: kp.left_hip.score } : null;
+  p[POSE.RIGHT_HIP] = kp.right_hip ? { x: kp.right_hip.x, y: kp.right_hip.y, z: 0, score: kp.right_hip.score } : null;
+  p[POSE.LEFT_KNEE] = kp.left_knee ? { x: kp.left_knee.x, y: kp.left_knee.y, z: 0, score: kp.left_knee.score } : null;
+  p[POSE.RIGHT_KNEE] = kp.right_knee ? { x: kp.right_knee.x, y: kp.right_knee.y, z: 0, score: kp.right_knee.score } : null;
+  p[POSE.LEFT_ANKLE] = kp.left_ankle ? { x: kp.left_ankle.x, y: kp.left_ankle.y, z: 0, score: kp.left_ankle.score } : null;
+  p[POSE.RIGHT_ANKLE] = kp.right_ankle ? { x: kp.right_ankle.x, y: kp.right_ankle.y, z: 0, score: kp.right_ankle.score } : null;
+
+  // Extrapolate heels and foot indices from ankle and knee vectors
+  if (kp.left_ankle && kp.left_ankle.score > 0.2) {
+    const shinLen = (kp.left_knee && kp.left_knee.score > 0.2) ? Math.abs(kp.left_ankle.y - kp.left_knee.y) : 38;
+    const heelExt = shinLen * 0.16;
+    p[POSE.LEFT_HEEL] = { x: kp.left_ankle.x, y: kp.left_ankle.y + heelExt, z: 0, score: kp.left_ankle.score };
+    p[POSE.LEFT_FOOT_INDEX] = { x: kp.left_ankle.x + (kp.left_knee ? (kp.left_ankle.x - kp.left_knee.x) * 0.35 : 12), y: kp.left_ankle.y + heelExt, z: 0, score: kp.left_ankle.score };
+  }
+  if (kp.right_ankle && kp.right_ankle.score > 0.2) {
+    const shinLen = (kp.right_knee && kp.right_knee.score > 0.2) ? Math.abs(kp.right_ankle.y - kp.right_knee.y) : 38;
+    const heelExt = shinLen * 0.16;
+    p[POSE.RIGHT_HEEL] = { x: kp.right_ankle.x, y: kp.right_ankle.y + heelExt, z: 0, score: kp.right_ankle.score };
+    p[POSE.RIGHT_FOOT_INDEX] = { x: kp.right_ankle.x + (kp.right_knee ? (kp.right_ankle.x - kp.right_knee.x) * 0.35 : -12), y: kp.right_ankle.y + heelExt, z: 0, score: kp.right_ankle.score };
+  }
+  return p;
+}
+
+function getFullBodyLandmarks(poseLandmarks){
+  if (!poseLandmarks) return null;
+  const p = poseLandmarks;
+  const nose = p[POSE.NOSE];
+  const le = p[POSE.LEFT_EYE], re = p[POSE.RIGHT_EYE];
+  const ls = p[POSE.LEFT_SHOULDER], rs = p[POSE.RIGHT_SHOULDER];
+  const lh = p[POSE.LEFT_HIP], rh = p[POSE.RIGHT_HIP];
+  const lk = p[POSE.LEFT_KNEE], rk = p[POSE.RIGHT_KNEE];
+  const la = p[POSE.LEFT_ANKLE], ra = p[POSE.RIGHT_ANKLE];
+  const lhPt = p[POSE.LEFT_HEEL], rhPt = p[POSE.RIGHT_HEEL];
+
+  const hasLa = la && (la.score === undefined || la.score > 0.22);
+  const hasRa = ra && (ra.score === undefined || ra.score > 0.22);
+  if (!hasLa && !hasRa) return null;
+
+  let soleY;
+  if (lhPt && rhPt) soleY = Math.max(lhPt.y, rhPt.y);
+  else if (lhPt) soleY = lhPt.y;
+  else if (rhPt) soleY = rhPt.y;
+  else if (hasLa && hasRa) soleY = Math.max(la.y, ra.y) + 14;
+  else soleY = (hasLa ? la.y : ra.y) + 14;
+
+  const crown = estimateCrown(p, lastFaceMeshLandmarks);
+  if (!crown) return null;
+
+  const crownY = crown.y;
+  const hPx = soleY - crownY;
+  if (hPx < 35) return null;
+
+  return {
+    inView: true,
+    crownY,
+    soleY,
+    hPx,
+    crown
+  };
+}
+
+/* ---- Unified Anthropometric Estimation & Stability Lock ---- */
+function estimate(poseLandmarks, currentDist = null, currentHeight = null){
+  const lm = getFullBodyLandmarks(poseLandmarks);
+  if(!lm || !lm.inView) return;
+
+  const h_px = lm.hPx;
+  if(h_px < 35) return;
+
+  // Derive metric scale (cm per pixel)
+  let scale;
+  if(exactCalibration && exactCalibration.active && exactCalibration.fPx){
+    // Exact pinhole optics calibration
+    const rawDist = exactCalibration.C_scale / h_px;
+    smoothedDist = smoothedDist !== null ? (smoothedDist * 0.78 + rawDist * 0.22) : rawDist;
+    currentDist = smoothedDist;
+    scale = currentDist / exactCalibration.fPx;
+  } else {
+    // Uncalibrated baseline using standard camera focal length
+    const defaultFpx = (overlay.height / 2) / Math.tan(toRad(27.5));
+    const assumedH = parseFloat(document.getElementById('calibHeight')?.value || '170');
+    const rawDist = (defaultFpx * assumedH) / h_px;
+    smoothedDist = smoothedDist !== null ? (smoothedDist * 0.82 + rawDist * 0.18) : rawDist;
+    currentDist = smoothedDist;
+    scale = currentDist / defaultFpx;
+  }
+
+  // Calculate comprehensive anthropometric profile
+  const profile = calculateBodyMeasurements(poseLandmarks, scale, lastFaceMeshLandmarks);
+  if(!profile) return;
+  lastAnthropometryProfile = profile;
+  updateAnthroUI(profile);
+
+  // Derive final robust stature from vertical crown to heels
+  const measuredHeight = calculateFinalHeight(profile);
+  if(measuredHeight !== null){
+    heightFilter.add(measuredHeight);
+    smoothedHeight = heightFilter.getMedian();
+    currentHeight = smoothedHeight;
+  }
+
+  if(currentDist > 20 && currentDist < 3500 && currentHeight > 50 && currentHeight < 260){
+    distOut.textContent = currentDist.toFixed(0);
+    heightOut.textContent = currentHeight.toFixed(1);
+
+    if(!locked){
+      const spread = heightFilter.getSpread();
+      const samplesCount = heightFilter.count();
+
+      let isStable = false;
+      if(samplesCount >= 6 && spread <= STABLE_TOL_CM){
+        stableSamples.push(currentHeight);
+        isStable = true;
+        statusEl.textContent = 'Locking height… ' + Math.min(100, Math.round(stableSamples.length / STREAK_TARGET * 100)) + '%';
+        statusEl.classList.remove('win');
+      } else {
+        stableSamples = [];
+        statusEl.textContent = 'Hold still to lock height reading…';
+        statusEl.classList.remove('win');
+      }
+
+      setMeter(Math.min(1, stableSamples.length / STREAK_TARGET) * 100);
+      if(stableSamples.length >= STREAK_TARGET){
+        const avgH = avg(stableSamples);
+        lockReading(avgH, currentDist);
+      }
+    }
+  }
+}
+
+/* ---- Pose loop tick (MediaPipe Pose + MoveNet Fallback) ---- */
+async function poseLoopTick(){
+  if(video.readyState < 2 || !video.videoWidth) return;
+  ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+  let detectedLandmarks = null;
+  let isMediaPipeActive = false;
+
+  // 1. Try MediaPipe Pose Landmarker (Full 33-point 3D model)
+  if(poseLandmarkerReady && poseLandmarker){
+    try {
+      const now = performance.now();
+      if(now > lastPoseTimestamp){
+        lastPoseTimestamp = now;
+        const mpResult = poseLandmarker.detectForVideo(video, now);
+        if(mpResult && mpResult.landmarks && mpResult.landmarks.length > 0){
+          const normLm = mpResult.landmarks[0];
+          // Convert normalized [0, 1] to pixel coords for canvas & measurements
+          detectedLandmarks = normLm.map(pt => ({
+            x: pt.x * overlay.width,
+            y: pt.y * overlay.height,
+            z: (pt.z || 0) * overlay.width,
+            visibility: pt.visibility !== undefined ? pt.visibility : 0.95
+          }));
+          isMediaPipeActive = true;
+        }
+      }
+    } catch(e) {
+      // Graceful fallback to MoveNet
+    }
+  }
+
+  // 2. Fallback to MoveNet Lightning if MediaPipe did not return a pose
+  if(!detectedLandmarks && poseDetector){
+    try {
+      const poses = await poseDetector.estimatePoses(video, { flipHorizontal: false });
+      if(poses && poses.length > 0){
+        const kp = {};
+        poses[0].keypoints.forEach(p => { kp[p.name] = p; });
+        lastKeypoints = kp;
+        detectedLandmarks = convertMoveNetToPoseLandmarks(kp);
+        isMediaPipeActive = false;
+      }
+    } catch(e) {
+      console.warn('MoveNet estimate error:', e);
+    }
+  }
+
+  // Draw HUD guideline
+  ctx.strokeStyle = 'rgba(0,212,255,0.22)'; ctx.lineWidth = 1;
+  ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(0, overlay.height / 2); ctx.lineTo(overlay.width, overlay.height / 2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = 'rgba(0,212,255,0.65)'; ctx.font = '9px Orbitron, monospace';
+  const engineBadge = isMediaPipeActive
+    ? 'MEDIAPIPE POSE 3D // 33-LANDMARK PIPELINE'
+    : 'MOVENET LIGHTNING // ANTHROPOMETRIC PIPELINE';
+  const engineTitle = (exactCalibration && exactCalibration.active)
+    ? `${engineBadge} [EXACT OPTICS LOCKED ${exactCalibration.H0}cm @ ${exactCalibration.D0}cm]`
+    : `${engineBadge} (DYNAMIC PERSPECTIVE)`;
+  ctx.fillText(engineTitle, 10, overlay.height / 2 - 4);
+
+  if(detectedLandmarks && detectedLandmarks.length >= 17){
+    const lm = getFullBodyLandmarks(detectedLandmarks);
+    const inView = !!(lm && lm.inView);
+
+    // Auto-detect torso silhouette
+    const ls = detectedLandmarks[POSE.LEFT_SHOULDER];
+    const rs = detectedLandmarks[POSE.RIGHT_SHOULDER];
+    const lh = detectedLandmarks[POSE.LEFT_HIP];
+    const rh = detectedLandmarks[POSE.RIGHT_HIP];
+    if(ls && rs && lh && rh){
+      const sW = Math.abs(ls.x - rs.x);
+      const hW = Math.max(1, Math.abs(lh.x - rh.x));
+      const ratio = sW / hW;
+      const detectedSilhouette = ratio > 1.15 ? 'Inverted Triangle' : (ratio < 0.87 ? 'Pear / Triangle' : 'Rectangle / Balanced');
+      if(!state.torso.shape){
+        const pt = document.getElementById('profileAutoText');
+        if(pt) pt.textContent = detectedSilhouette;
+        if(!torsoSelect.value) torsoSelect.value = detectedSilhouette;
+      }
+    }
+
+    // Validation UI
+    const isStill = stableSamples.length > 3;
+    updateValidationUI({
+      valid: inView,
+      humanDetected: true,
+      checks: { upright: inView },
+      reason: inView ? 'Full body detected! Multi-landmark tracking engaged…' : 'Step back so your head and feet are both visible in frame…'
+    }, isStill);
+
+    // Render skeleton joints and bones
+    const jointColor = inView ? '#00ffc8' : '#ff2d78';
+    const limbColor = inView ? 'rgba(0,255,200,0.55)' : 'rgba(255,45,120,0.45)';
+
+    ctx.fillStyle = jointColor;
+    detectedLandmarks.forEach(p => {
+      if(p && (p.score === undefined || p.score > 0.22) && (p.visibility === undefined || p.visibility > 0.3)){
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    });
+
+    ctx.strokeStyle = limbColor; ctx.lineWidth = 2;
+    MEDIAPIPE_POSE_CONNECTIONS.forEach(([i, j]) => {
+      const ka = detectedLandmarks[i], kb = detectedLandmarks[j];
+      if(ka && kb && (ka.score === undefined || ka.score > 0.22) && (kb.score === undefined || kb.score > 0.22)){
+        ctx.beginPath(); ctx.moveTo(ka.x, ka.y); ctx.lineTo(kb.x, kb.y); ctx.stroke();
+      }
+    });
+
+    // Anatomical Guidelines on Live Video HUD
+    if(lm && lm.inView){
+      ctx.save();
+      // Crown guideline (Gold)
+      ctx.strokeStyle = '#f59e0b';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath();
+      ctx.moveTo(0, lm.crownY);
+      ctx.lineTo(overlay.width, lm.crownY);
+      ctx.stroke();
+
+      ctx.fillStyle = '#f59e0b';
+      ctx.font = '700 9px Orbitron, monospace';
+      ctx.fillText('👑 CROWN LEVEL', overlay.width - 115, lm.crownY - 5);
+
+      // Sole / Floor guideline (Cyan)
+      ctx.strokeStyle = '#00d4ff';
+      ctx.beginPath();
+      ctx.moveTo(0, lm.soleY);
+      ctx.lineTo(overlay.width, lm.soleY);
+      ctx.stroke();
+
+      ctx.fillStyle = '#00d4ff';
+      ctx.fillText('👟 FLOOR SOLE LEVEL', overlay.width - 140, lm.soleY - 5);
+
+      // Vertical Stature Bracket
+      const bracketX = Math.max(16, (detectedLandmarks[POSE.NOSE] ? detectedLandmarks[POSE.NOSE].x : overlay.width / 2) - 85);
+      ctx.strokeStyle = 'rgba(0,255,200,0.6)';
+      ctx.setLineDash([]);
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(bracketX - 5, lm.crownY);
+      ctx.lineTo(bracketX, lm.crownY);
+      ctx.lineTo(bracketX, lm.soleY);
+      ctx.lineTo(bracketX - 5, lm.soleY);
+      ctx.stroke();
+
+      ctx.fillStyle = '#00ffc8';
+      ctx.font = '600 8.5px Orbitron, monospace';
+      const calibTag = (exactCalibration && exactCalibration.active) ? ' [EXACT LOCK]' : '';
+      ctx.fillText(`${lm.hPx.toFixed(0)}px${calibTag}`, bracketX + 6, (lm.crownY + lm.soleY) / 2);
+      ctx.restore();
+    }
+
+    // In-frame status badge on canvas
+    const badgeText = inView ? '✓ 33-LANDMARK PIPELINE ACTIVE' : '● PARTIAL POSE // STEP BACK';
+    const badgeColor = inView ? '#00ffc8' : '#00d4ff';
+    const badgeBg = inView ? 'rgba(0,255,200,0.16)' : 'rgba(0,212,255,0.16)';
+
+    ctx.fillStyle = badgeBg;
+    ctx.fillRect(10, 10, 260, 22);
+    ctx.strokeStyle = badgeColor;
+    ctx.strokeRect(10, 10, 260, 22);
+    ctx.fillStyle = badgeColor;
+    ctx.font = '700 9px Orbitron, monospace';
+    ctx.fillText(badgeText, 16, 24);
+
+    if(inView && !locked){
+      estimate(detectedLandmarks);
+    } else if(!inView && !locked){
+      shortBuf = [];
+      stableSamples = [];
+      setMeter(0);
+      statusEl.textContent = 'Step back so both your head and feet are visible in frame…';
+      statusEl.classList.remove('win');
+    }
+  } else {
+    lastKeypoints = null;
+    ctx.fillStyle = 'rgba(255,45,120,0.16)';
+    ctx.fillRect(10, 10, 240, 22);
+    ctx.strokeStyle = '#ff2d78';
+    ctx.strokeRect(10, 10, 240, 22);
+    ctx.fillStyle = '#ff2d78';
+    ctx.font = '700 9px Orbitron, monospace';
+    ctx.fillText('⚠️ NO ONE IN FRAME', 16, 24);
+
+    updateValidationUI({ valid: false, humanDetected: false, checks: { upright: false }, reason: 'Step into the camera frame to measure…' }, false);
+    if(!locked){
+      shortBuf = []; stableSamples = []; setMeter(0);
+      statusEl.textContent = 'No one in frame — step into the camera view.';
+      statusEl.classList.remove('win');
+    }
+  }
+}
+
+function setMeter(pct){
+  const fill=document.getElementById('tubeFill');if(!fill)return;
+  if(window.innerWidth<=760){fill.style.width=pct+'%';fill.style.height='100%';}
+  else{fill.style.height=pct+'%';fill.style.width='';}
+}
+
+/* ---- Audio ---- */
+let audioCtx=null;
+function ding(){
+  try{
+    if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    [[880,0,0.5,0.12],[1320,0.1,0.6,0.06]].forEach(([freq,start,stop,gain])=>{
+      const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+      o.type='sine';o.frequency.value=freq;
+      g.gain.setValueAtTime(gain,audioCtx.currentTime+start);
+      g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+stop);
+      o.connect(g);g.connect(audioCtx.destination);
+      o.start(audioCtx.currentTime+start);o.stop(audioCtx.currentTime+stop);
+      o.onended=()=>{o.disconnect();g.disconnect();};
+    });
+  }catch(e){}
+}
+
+/* ---- Confetti ---- */
+let particles=[];
+function burstConfetti(){
+  const colors=['#00d4ff','#8b5cf6','#f59e0b','#ff2d78','#10b981'];
+  for(let i=0;i<90;i++) particles.push({x:confettiCv.width/2,y:confettiCv.height*0.3,vx:(Math.random()-0.5)*10,vy:Math.random()*-7-2,g:0.28,size:Math.random()*5+2,color:colors[i%colors.length],life:80,rot:Math.random()*360,spin:(Math.random()-0.5)*8});
+}
+function drawConfetti(){
+  cctx.clearRect(0,0,confettiCv.width,confettiCv.height);
+  particles.forEach(p=>{p.vy+=p.g;p.x+=p.vx;p.y+=p.vy;p.life--;p.rot+=p.spin;cctx.save();cctx.translate(p.x,p.y);cctx.rotate(p.rot*Math.PI/180);cctx.globalAlpha=p.life/80;cctx.fillStyle=p.color;cctx.fillRect(-p.size/2,-p.size/2,p.size,p.size);cctx.restore();});
+  particles=particles.filter(p=>p.life>0);
+}
+
+/* ---- Height conversions & voice read-out ---- */
+function cmToFtIn(cm){
+  const totalIn = cm / 2.54;
+  const ft = Math.floor(totalIn / 12);
+  const inch = Math.round(totalIn % 12);
+  return `${ft}' ${inch}"`;
+}
+
+function speakText(text){
+  try{
+    if('speechSynthesis' in window){
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.rate = 1.0;
+      u.pitch = 1.0;
+      window.speechSynthesis.speak(u);
+    }
+  }catch(e){}
+}
+
+/* ---- Lock reading ---- */
+function lockReading(finalHeight,finalDist){
+  locked=true;
+  const ftIn=cmToFtIn(finalHeight);
+  heightOut.innerHTML=`${finalHeight.toFixed(1)} <span style="font-size:0.52em;opacity:0.85">cm</span><span style="display:block;font-size:0.42em;opacity:0.75;font-weight:400;margin-top:2px">${ftIn}</span>`;
+  distOut.textContent=finalDist.toFixed(0);
+  document.getElementById('heightLbl').textContent='HEIGHT — LOCKED';
+  document.getElementById('heightCard').classList.add('locked');
+  statusEl.textContent=`LOCKED: ${finalHeight.toFixed(1)} cm (${ftIn})!`;
+  statusEl.classList.add('win');
+  document.getElementById('remeasureBtn').style.display='block';
+  bell.classList.add('ringing');setTimeout(()=>bell.classList.remove('ringing'),1600);
+  ding();burstConfetti();flashScreen();addXP(150);
+  state.height.value=finalHeight;
+  if(lastAnthropometryProfile){
+    state.anthropometry = getDisplayMeasurements(lastAnthropometryProfile);
+  }
+
+  const torso=getTorsoShape(lastKeypoints);
+  const detectedShape = torso ? torso.shape : (torsoSelect.value || (gameState.activeGender === 'men' ? 'Mesomorph' : 'Hourglass'));
+  if(torso){
+    state.torso.shape=torso.shape;
+    torsoSelect.value=torso.shape;
+    const pt=document.getElementById('profileAutoText');
+    if(pt) pt.textContent=torso.shape;
+  }
+
+  // Verbally announce both height and detected body profile
+  speakText(`Your height is ${finalHeight.toFixed(1)} centimeters, that is ${ftIn}. Your detected body profile is ${detectedShape}. Loading your specific styling dossier.`);
+  checkPhase2Ready();shotsHistory.push({height:finalHeight,dist:finalDist});renderGallery();checkBadge();
+}
+
+function renderGallery(){
+  gallery.innerHTML='';
+  shotsHistory.forEach((s,i)=>{const chip=document.createElement('div');chip.className='nx-chip';chip.textContent='#'+(i+1)+'  '+s.height.toFixed(1)+'cm @ '+s.dist.toFixed(0)+'cm';gallery.appendChild(chip);});
+}
+
+function checkBadge(){
+  if(shotsHistory.length<2)return;
+  const latest=shotsHistory[shotsHistory.length-1];
+  for(let i=0;i<shotsHistory.length-1;i++){
+    if(Math.abs(shotsHistory[i].dist-latest.dist)>=80&&Math.abs(shotsHistory[i].height-latest.height)<=3){
+      if(badge.style.display!=='block'){addXP(250);flashScreen();statusEl.textContent='🏆 +250 XP · Distance-Proof Challenge cleared!';statusEl.classList.add('win');}
+      badge.style.display='block';return;
+    }
+  }
+}
+function checkPhase2Ready(){continueToRecBtn.style.display=(state.height.value!==null&&torsoSelect.value)?'block':'none';}
+
+/* ---- Phase transitions ---- */
+function goToPhase(n){
+  currentPhase=n;
+  document.querySelectorAll('.nx-step').forEach(d=>{const s=parseInt(d.dataset.step,10);d.classList.toggle('active',s===n);d.classList.toggle('done',s<n);});
+  phase1Panel.style.display=n===1?'block':'none';phase2Panel.style.display=n===2?'block':'none';
+  arcadeEl.style.display=n===3?'none':'flex';belowArcade.style.display=n===3?'none':'flex';recWrap.style.display=n===3?'flex':'none';
+  panelHeading.textContent=n===1?'Face Scan':n===2?'Height Booth':'Style Card';panelStepNum.textContent=String(n);
+  if(n===2){
+    setQuest('Height Quest: Ground Level Setup','Set camera height above floor, then validate posture to measure exact height.',2);
+    clearHeightPhase2Cache(false);
+    statusEl.textContent='Step back so your head and feet are visible in frame…';
+    statusEl.classList.remove('win');
+  }
+  if(n===3){setQuest('Style Profile Unlocked','Quest complete — your profile card is ready.',3);renderRecommendation();}
+}
+
+/* ============================================================
+   PHASE 3: AI CAPSULE WARDROBE & DATASET SYNTHESIS CONTROLLER
+   ============================================================ */
+
+function renderRecommendation(){
+  const gender = gameState.activeGender || 'women';
+
+  if(gender === 'men'){
+    // Men biometrics & passport
+    const ftIn = state.height.value !== null ? cmToFtIn(state.height.value) : "5' 11.8\"";
+    const heightValEl = document.getElementById('recHeightOut');
+    if(heightValEl) heightValEl.textContent = state.height.value !== null ? `${state.height.value.toFixed(1)} cm (${ftIn})` : `182.4 cm (${ftIn})`;
+
+    const irisName = state.face.iris || 'Brown';
+    const recIrisSwatch = document.getElementById('recIrisSwatch');
+    const recIrisName = document.getElementById('recIrisName');
+    if(recIrisSwatch){
+      recIrisSwatch.style.background = 'url("biometric_iris_brown.png") center/cover';
+      recIrisSwatch.style.boxShadow = '0 0 10px rgba(107,68,35,0.6)';
+    }
+    if(recIrisName) recIrisName.textContent = irisName + ' (#6b4423)';
+
+    const torsoName = state.torso.shape || 'Mesomorph';
+    const recTorsoName = document.getElementById('recTorsoName');
+    if(recTorsoName) recTorsoName.innerHTML = torsoName + ' <span style="font-size:0.65rem;color:var(--cyan)">▲</span>';
+
+    const recFaceShapeCard = document.getElementById('recFaceShapeCard');
+    const recFaceShapeOut = document.getElementById('recFaceShapeOut');
+    if(recFaceShapeCard && recFaceShapeOut){
+      recFaceShapeCard.style.display = 'flex';
+      recFaceShapeOut.textContent = state.face.shape || 'Oval / Square';
+    }
+
+    // Dataset 2 Anthropometrics
+    const bodyCluster = BODY_DATASET_CLUSTERS[torsoName] || BODY_DATASET_CLUSTERS['Mesomorph'] || BODY_DATASET_CLUSTERS['Inverted Triangle'];
+    const recBodyClusterTitle = document.getElementById('recBodyClusterTitle');
+    const recBodyClusterText = document.getElementById('recBodyClusterText');
+    const recSizeOut = document.getElementById('recSizeOut');
+    const recStyleOut = document.getElementById('recStyleOut');
+    const recSynergyPill = document.getElementById('recSynergyPill');
+    const recBodyWireframe = document.getElementById('recBodyWireframe');
+
+    if(recBodyClusterTitle) recBodyClusterTitle.textContent = `${bodyCluster.name.toUpperCase()} (DATASET 2: 1,000 SCANS)`;
+    if(recBodyClusterText) {
+      const m = bodyCluster.avgMeasurements;
+      recBodyClusterText.textContent = `${bodyCluster.tailoringPhilosophy} Chest: ${m.chest}cm, Waist: ${m.waist}cm, Hips: ${m.hip}cm. Dominant styles: ${bodyCluster.dominantStyles.slice(0,2).join(', ')}.`;
+    }
+    if(recSizeOut) recSizeOut.textContent = bodyCluster.recommendedSizes.join(' / ');
+    if(recStyleOut) recStyleOut.textContent = bodyCluster.dominantStyles[0];
+    if(recSynergyPill) recSynergyPill.textContent = `${bodyCluster.avgSynergyScore}% FIT SYNERGY`;
+    if(recBodyWireframe) recBodyWireframe.src = 'body_wireframe_it.png';
+
+    // Dataset 1 Beauty & Grooming
+    const recBeautyThumb = document.getElementById('recBeautyThumb');
+    const recBeautyText = document.getElementById('recBeautyText');
+    const recLipOut = document.getElementById('recLipOut');
+    const recCountryOut = document.getElementById('recCountryOut');
+
+    if(recBeautyThumb) recBeautyThumb.src = 'beauty_men_grooming.png';
+    if(recBeautyText) recBeautyText.textContent = 'Refined Classic / Urban Elite aesthetic with calibrated stubble and clean facial lines.';
+    if(recLipOut) recLipOut.textContent = 'Natural Rose (NR-12)';
+    if(recCountryOut) recCountryOut.textContent = 'Matte Finish Skin';
+
+    // Harmonic Color Spectrum: Navy Blue, Deep Onyx, Stone Beige
+    const recPaletteNote = document.getElementById('recPaletteNote');
+    const recSwatchRow = document.getElementById('recSwatchRow');
+    if(recPaletteNote) recPaletteNote.textContent = `Modern Classic Spectrum: Curated to ignite ${irisName} iris biometrics and define structured ${torsoName} lines.`;
+    if(recSwatchRow){
+      recSwatchRow.innerHTML = `
+        <div class="nx-swatch"><div class="nx-swatch-color" style="background:#2b4c8c;box-shadow:0 4px 14px #2b4c8c55"></div><div class="nx-swatch-label">Navy Blue<br><span style="font-size:0.65rem;color:var(--text-dim)">#2b4c8c</span></div></div>
+        <div class="nx-swatch"><div class="nx-swatch-color" style="background:#111827;box-shadow:0 4px 14px #11182755"></div><div class="nx-swatch-label">Deep Onyx<br><span style="font-size:0.65rem;color:var(--text-dim)">#111827</span></div></div>
+        <div class="nx-swatch"><div class="nx-swatch-color" style="background:#d9cbb3;box-shadow:0 4px 14px #d9cbb355"></div><div class="nx-swatch-label">Stone Beige<br><span style="font-size:0.65rem;color:var(--text-dim)">#d9cbb3</span></div></div>
+      `;
+    }
+  } else {
+    // Women biometrics & passport
+    const ftIn = state.height.value !== null ? cmToFtIn(state.height.value) : "5' 8.6\"";
+    const heightValEl = document.getElementById('recHeightOut');
+    if(heightValEl) heightValEl.textContent = state.height.value !== null ? `${state.height.value.toFixed(1)} cm (${ftIn})` : `174.2 cm (${ftIn})`;
+
+    const irisName = state.face.iris || 'Brown';
+    const irisHex = state.face.irisHex || IRIS_HEX[irisName] || '#6b4423';
+    const recIrisSwatch = document.getElementById('recIrisSwatch');
+    const recIrisName = document.getElementById('recIrisName');
+    if(recIrisSwatch){
+      if(irisName.toLowerCase().includes('brown')){
+        recIrisSwatch.style.background = 'url("biometric_iris_brown.png") center/cover';
+      } else {
+        recIrisSwatch.style.background = irisHex;
+      }
+      recIrisSwatch.style.boxShadow = '0 0 10px ' + irisHex + '88';
+    }
+    if(recIrisName) recIrisName.textContent = irisName + ' (#6b4423)';
+
+    const torsoName = state.torso.shape || 'Hourglass';
+    const recTorsoName = document.getElementById('recTorsoName');
+    if(recTorsoName) recTorsoName.innerHTML = torsoName + ' <span style="font-size:0.65rem;color:var(--cyan)">▲</span>';
+
+    const recFaceShapeCard = document.getElementById('recFaceShapeCard');
+    const recFaceShapeOut = document.getElementById('recFaceShapeOut');
+    if(recFaceShapeCard && recFaceShapeOut){
+      recFaceShapeCard.style.display = 'flex';
+      recFaceShapeOut.textContent = state.face.shape || 'Standard Oval';
+    }
+
+    // Dataset 2 Anthropometrics
+    const bodyCluster = BODY_DATASET_CLUSTERS[torsoName] || BODY_DATASET_CLUSTERS['Hourglass'] || BODY_DATASET_CLUSTERS['Inverted Triangle'];
+    const recBodyClusterTitle = document.getElementById('recBodyClusterTitle');
+    const recBodyClusterText = document.getElementById('recBodyClusterText');
+    const recSizeOut = document.getElementById('recSizeOut');
+    const recStyleOut = document.getElementById('recStyleOut');
+    const recSynergyPill = document.getElementById('recSynergyPill');
+    const recBodyWireframe = document.getElementById('recBodyWireframe');
+
+    if(recBodyClusterTitle) recBodyClusterTitle.textContent = `${bodyCluster.name.toUpperCase()} (DATASET 2: 1,000 SCANS)`;
+    if(recBodyClusterText) {
+      const m = bodyCluster.avgMeasurements;
+      recBodyClusterText.textContent = `${bodyCluster.tailoringPhilosophy} Bust/Chest: ${m.bust || m.chest}cm, Waist: ${m.waist}cm, Hips: ${m.hip}cm. Dominant styles: ${bodyCluster.dominantStyles.slice(0,2).join(', ')}.`;
+    }
+    if(recSizeOut) recSizeOut.textContent = bodyCluster.recommendedSizes.join(' / ');
+    if(recStyleOut) recStyleOut.textContent = bodyCluster.dominantStyles[0];
+    if(recSynergyPill) recSynergyPill.textContent = `${bodyCluster.avgSynergyScore}% FIT SYNERGY`;
+    if(recBodyWireframe) recBodyWireframe.src = 'body_wireframe_it.png';
+
+    // Dataset 1 Beauty
+    const eyeHarmony = EYE_STYLE_HARMONY[irisName] || EYE_STYLE_HARMONY['Brown'];
+    const recBeautyThumb = document.getElementById('recBeautyThumb');
+    const recBeautyText = document.getElementById('recBeautyText');
+    const recLipOut = document.getElementById('recLipOut');
+    const recCountryOut = document.getElementById('recCountryOut');
+
+    if(recBeautyThumb) recBeautyThumb.src = 'beauty_lip_ruby.png';
+    if(recBeautyText) recBeautyText.textContent = `${eyeHarmony.beautyPairing.aesthetic} Paired skin finish: ${eyeHarmony.beautyPairing.skinAccent}.`;
+    if(recLipOut) recLipOut.textContent = eyeHarmony.beautyPairing.lipAccent;
+    if(recCountryOut) recCountryOut.textContent = eyeHarmony.beautyPairing.skinAccent.split('(')[1]?.replace(')','') || 'Dataset 1 Archetype';
+
+    // Harmonic Color Spectrum
+    const recPaletteNote = document.getElementById('recPaletteNote');
+    const recSwatchRow = document.getElementById('recSwatchRow');
+    if(recPaletteNote) recPaletteNote.textContent = `${eyeHarmony.paletteName} Palette: Formulated to ignite ${irisName} eye pigments while accentuating ${torsoName} lines.`;
+    if(recSwatchRow){
+      recSwatchRow.innerHTML = '';
+      eyeHarmony.swatches.forEach(c => {
+        const chip = document.createElement('div');
+        chip.className = 'nx-swatch';
+        const sw = document.createElement('div');
+        sw.className = 'nx-swatch-color';
+        sw.style.background = c.hex;
+        sw.style.boxShadow = '0 4px 14px ' + c.hex + '55';
+        const lbl = document.createElement('div');
+        lbl.className = 'nx-swatch-label';
+        lbl.innerHTML = `${c.name}<br><span style="font-size:0.65rem;color:var(--text-dim)">${c.hex}</span>`;
+        chip.appendChild(sw);
+        chip.appendChild(lbl);
+        recSwatchRow.appendChild(chip);
+      });
+    }
+  }
+
+  // --- MULTI-LANDMARK ANTHROPOMETRICS PASSPORT STRIP ---
+  const recAnthroStrip = document.getElementById('recAnthroStrip');
+  if(recAnthroStrip){
+    if(state.anthropometry){
+      recAnthroStrip.style.display = 'block';
+      const a = state.anthropometry;
+      const elCh = document.getElementById('recCrownHeelVal');
+      if(elCh) elCh.textContent = a.crownToHeel ? `${a.crownToHeel.toFixed(1)} cm` : '—';
+      const elSpan = document.getElementById('recArmSpanVal');
+      if(elSpan) elSpan.textContent = a.armSpan ? `${a.armSpan.toFixed(1)} cm` : '—';
+      const elSh = document.getElementById('recShoulderVal');
+      if(elSh) elSh.textContent = a.shoulderWidth ? `${a.shoulderWidth.toFixed(1)} cm` : '—';
+      const elHip = document.getElementById('recHipVal');
+      if(elHip) elHip.textContent = a.hipWidth ? `${a.hipWidth.toFixed(1)} cm` : '—';
+      const elTorso = document.getElementById('recTorsoVal');
+      if(elTorso) elTorso.textContent = a.torso ? `${a.torso.toFixed(1)} cm` : '—';
+      const elLeg = document.getElementById('recLegVal');
+      if(elLeg) elLeg.textContent = a.avgLeg ? `${a.avgLeg.toFixed(1)} cm` : '—';
+      const elBadge = document.getElementById('recAnthroConfBadge');
+      if(elBadge) elBadge.textContent = `${a.confidence || 96}% FIT RELIABILITY`;
+    } else {
+      recAnthroStrip.style.display = 'none';
+    }
+  }
+
+  // --- TICKET & XP ---
+  const recTicketIdOut = document.getElementById('recTicketIdOut');
+  if(recTicketIdOut) recTicketIdOut.textContent = state.face.ticketId || 'ST-7492';
+  const fxEl = document.getElementById('finalXP');
+  if(fxEl){
+    let count = 0;
+    const step = Math.ceil(xp / 40) || 5;
+    const id = setInterval(() => {
+      count = Math.min(count + step, xp);
+      fxEl.textContent = count;
+      if(count >= xp) clearInterval(id);
+    }, 30);
+  }
+
+  // --- RENDER DYNAMIC BODY TYPE PILLS, DOSSIER & CAPSULE WARDROBE ---
+  renderBodyTypePills();
+  renderDossierShowcase();
+  renderCapsuleWardrobe();
+}
+
+function renderDossierShowcase(){
+  const gender = gameState.activeGender || 'women';
+  const currentTorso = state.torso.shape || (gender === 'men' ? 'Mesomorph' : 'Hourglass');
+  const dossier = (typeof getBodyTypeDossier === 'function') ? getBodyTypeDossier(gender, currentTorso) : null;
+  if(!dossier) return;
+
+  const dossierImg = document.getElementById('dossierImg');
+  const dossierMainTitle = document.getElementById('dossierMainTitle');
+  const dossierFitPill = document.getElementById('dossierFitPill');
+  const dossierProportions = document.getElementById('dossierProportions');
+  const dossierSizeRange = document.getElementById('dossierSizeRange');
+  const dossierDirectivesList = document.getElementById('dossierDirectivesList');
+  const dossierSwatches = document.getElementById('dossierSwatches');
+
+  if(dossierImg) dossierImg.src = dossier.image;
+  if(dossierMainTitle) dossierMainTitle.textContent = dossier.title.toUpperCase();
+  if(dossierFitPill) dossierFitPill.textContent = `${dossier.fitScore}% FIT SYNERGY`;
+  if(dossierProportions) dossierProportions.textContent = dossier.keyProportions;
+  if(dossierSizeRange) dossierSizeRange.textContent = dossier.sizeRange;
+
+  if(dossierDirectivesList && Array.isArray(dossier.tailoringDirectives)){
+    dossierDirectivesList.innerHTML = '';
+    dossier.tailoringDirectives.forEach(dir => {
+      const li = document.createElement('li');
+      li.textContent = dir;
+      dossierDirectivesList.appendChild(li);
+    });
+  }
+
+  if(dossierSwatches && Array.isArray(dossier.palette)){
+    dossierSwatches.innerHTML = '';
+    dossier.palette.forEach(sw => {
+      const chip = document.createElement('div');
+      chip.className = 'nx-dossier-swatch-chip';
+      chip.innerHTML = `<span class="nx-dossier-swatch-dot" style="background:${sw.hex}"></span> ${sw.name}`;
+      dossierSwatches.appendChild(chip);
+    });
+  }
+}
+
+function renderBodyTypePills(){
+  const bar = document.getElementById('bodyTypeSelectorBar');
+  if(!bar) return;
+  const gender = gameState.activeGender || 'women';
+  const currentShape = state.torso.shape || (gender === 'men' ? 'Mesomorph' : 'Hourglass');
+
+  const womenShapes = [
+    { id: 'Hourglass', label: '⏳ Hourglass', desc: 'Balanced Ratios, Defined Waist (97.8% Fit)' },
+    { id: 'Pear / Triangle', label: '🍐 Pear', desc: 'Narrower Shoulders, Wider Hips (95.6% Fit)' },
+    { id: 'Rectangle / Balanced', label: '◽ Rectangle', desc: 'Harmonic Straight Canvas (94.2% Fit)' },
+    { id: 'Inverted Triangle', label: '🔻 Inverted', desc: 'Athletic Broad Shoulders (96.4% Fit)' },
+    { id: 'Apple / Round', label: '🍎 Apple', desc: 'Empire Drapes, Slender Legs (95.8% Fit)' },
+    { id: 'Petite / Compact', label: '✨ Petite', desc: 'Delicate Scaled Proportions (96.9% Fit)' }
+  ];
+
+  const menShapes = [
+    { id: 'Mesomorph', label: '⚡ Mesomorph', desc: 'Muscular V-Taper Build (97.4% Fit)' },
+    { id: 'Ectomorph', label: '📏 Ectomorph', desc: 'Lean Linear Frame, Long Limbs (95.8% Fit)' },
+    { id: 'Endomorph', label: '🛡️ Endomorph', desc: 'Broader Substantial Frame (94.9% Fit)' },
+    { id: 'Inverted Triangle', label: '🔻 Inverted', desc: 'Athletic Broad Shoulders (96.5% Fit)' },
+    { id: 'Rectangle / Balanced', label: '◽ Rectangle', desc: 'Balanced Average Frame (95.6% Fit)' },
+    { id: 'Pear / Triangle', label: '📐 Triangle', desc: 'A-Frame, Broader Base (95.2% Fit)' }
+  ];
+
+  const list = gender === 'men' ? menShapes : womenShapes;
+
+  bar.innerHTML = `<span class="nx-bodytype-label">SELECT BODY PROFILE:</span>`;
+  list.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = `nx-bodytype-pill ${currentShape === item.id ? 'active' : ''}`;
+    btn.innerHTML = `${item.label}`;
+    btn.title = item.desc;
+    btn.onclick = () => {
+      state.torso.shape = item.id;
+      if(torsoSelect) torsoSelect.value = item.id;
+      playNote(620, 0.08, 0.12);
+      renderRecommendation();
+    };
+    bar.appendChild(btn);
+  });
+}
+
+
+/* ---- AI Capsule Wardrobe Controller ---- */
+let currentViewMode = 'spotlight';
+
+window.switchViewMode = function(mode){
+  currentViewMode = mode;
+  document.getElementById('viewModeSpotlight')?.classList.toggle('active', mode === 'spotlight');
+  document.getElementById('viewModeLookbook')?.classList.toggle('active', mode === 'lookbook');
+  
+  const heroCard = document.getElementById('heroLookCard');
+  const lookbookWrap = document.getElementById('fullLookbookWrap');
+
+  if(mode === 'spotlight'){
+    if(heroCard) heroCard.style.display = 'grid';
+    if(lookbookWrap) lookbookWrap.style.display = 'none';
+  } else {
+    if(heroCard) heroCard.style.display = 'none';
+    if(lookbookWrap) lookbookWrap.style.display = 'flex';
+    renderLookbookView();
+  }
+};
+
+window.switchGender = function(g){
+  gameState.activeGender = g;
+  document.getElementById('genderWomenBtn')?.classList.toggle('active', g === 'women');
+  document.getElementById('genderMenBtn')?.classList.toggle('active', g === 'men');
+
+  // Set smart default body type when switching gender if current one isn't valid for the selected gender
+  if(g === 'men'){
+    const menValid = ['Mesomorph', 'Ectomorph', 'Endomorph', 'Inverted Triangle', 'Rectangle / Balanced', 'Pear / Triangle'];
+    if(!menValid.includes(state.torso.shape)){
+      state.torso.shape = 'Mesomorph';
+    }
+  } else {
+    const womenValid = ['Hourglass', 'Pear / Triangle', 'Rectangle / Balanced', 'Inverted Triangle', 'Apple / Round', 'Petite / Compact'];
+    if(!womenValid.includes(state.torso.shape)){
+      state.torso.shape = 'Hourglass';
+    }
+  }
+  if(torsoSelect) torsoSelect.value = state.torso.shape;
+
+  playNote(540, 0.1, 0.15);
+  renderRecommendation();
+  if(currentViewMode === 'lookbook') renderLookbookView();
+};
+
+window.openLookbookModal = function(imgSrc){
+  const modal = document.getElementById('lightboxModal');
+  const img = document.getElementById('lightboxImg');
+  if(modal && img){
+    img.src = imgSrc;
+    modal.style.display = 'flex';
+  }
+};
+
+window.closeLookbookModal = function(){
+  const modal = document.getElementById('lightboxModal');
+  if(modal) modal.style.display = 'none';
+};
+
+function renderLookbookView(subSheet){
+  const gender = gameState.activeGender || 'women';
+  const titleEl = document.getElementById('lookbookTitle');
+  const subEl = document.getElementById('lookbookSub');
+  const imgEl = document.getElementById('lookbookMainImg');
+  const tabsEl = document.getElementById('lookbookSubTabs');
+
+  if(gender === 'women'){
+    const sheet = subSheet || 'master';
+    if(titleEl) titleEl.textContent = sheet === 'master' ? "AI COUTURE ATELIER — BIOMETRIC STYLE SHEET" : "AI GENERATED CAPSULE WARDROBE — WOMEN'S EDIT";
+    if(subEl) subEl.textContent = sheet === 'master' ? "Editorial Master Sheet with Biometric Passport, Beauty Lip Accents & Haute Executive Suit" : "Complete 6-Silhouette Spectrum: Hourglass (97.8%) · Pear (95.6%) · Rectangle (94.2%) · Inverted (96.4%) · Apple (95.8%) · Petite (96.9%)";
+    if(imgEl) imgEl.src = sheet === 'master' ? "rec_women_hero.png" : "rec_women_capsules.png";
+
+    if(tabsEl){
+      tabsEl.innerHTML = `
+        <button class="nx-lookbook-sub-btn ${sheet==='master'?'active':''}" onclick="renderLookbookView('master')">✨ MASTER ATELIER SHEET</button>
+        <button class="nx-lookbook-sub-btn ${sheet==='capsules'?'active':''}" onclick="renderLookbookView('capsules')">👗 3-SHAPE CAPSULES</button>
+      `;
+    }
+  } else {
+    const sheet = subSheet || 'master';
+    if(titleEl) titleEl.textContent = sheet === 'master' ? "AI COUTURE ATELIER — MEN'S BIOMETRIC PASSPORT" : (sheet === 'archetypes' ? "AI GENERATED CAPSULE WARDROBE — 6 MEN'S BIOMETRIC ARCHETYPES" : "AI GENERATED CAPSULE WARDROBE — MEN'S EDIT");
+    if(subEl) subEl.textContent = sheet === 'master' ? "Editorial Master Sheet with Biometric Passport, Beauty Grooming Accents & Haute Executive Suit" : (sheet === 'archetypes' ? "Ectomorph · Mesomorph · Endomorph · Triangle · Inverted Triangle · Rectangle Deep Measurements" : "Tall & Athletic (96.8% Fit) · Average (95.6% Fit) · Stocky / Muscular (94.9% Fit) · Slim (93.7% Fit)");
+    if(imgEl) imgEl.src = sheet === 'master' ? "mainmen.png" : (sheet === 'archetypes' ? "rec_men_archetypes.png" : "rec_men_capsules.png");
+
+    if(tabsEl){
+      tabsEl.innerHTML = `
+        <button class="nx-lookbook-sub-btn ${sheet==='master'?'active':''}" onclick="renderLookbookView('master')">✨ MASTER ATELIER SHEET</button>
+        <button class="nx-lookbook-sub-btn ${sheet==='capsules'?'active':''}" onclick="renderLookbookView('capsules')">👔 4 BODY BUILDS</button>
+        <button class="nx-lookbook-sub-btn ${sheet==='archetypes'?'active':''}" onclick="renderLookbookView('archetypes')">🧬 6 BIOMETRIC ARCHETYPES</button>
+      `;
+    }
+  }
+}
+
+function renderCapsuleWardrobe(){
+  const torsoName = state.torso.shape || 'Rectangle / Balanced';
+  const irisName = state.face.iris || 'Brown';
+  const gender = gameState.activeGender || 'women';
+
+  const gMatrix = OCCASION_WARDROBE_MATRIX[gender] || OCCASION_WARDROBE_MATRIX.women;
+  const torsoMatrix = gMatrix[torsoName] || gMatrix['Rectangle / Balanced'];
+  const activeLook = torsoMatrix.work || torsoMatrix['work'] || Object.values(torsoMatrix)[0];
+  const imgPath = (typeof getLookImage === 'function') ? getLookImage(activeLook.id, gender, torsoName, 'work') : (activeLook.image || 'look_women_it_work.png');
+
+  // Render Hero Look Card
+  const heroCard = document.getElementById('heroLookCard');
+  if(heroCard){
+    const dotsHtml = (activeLook.eyeHarmonies || []).map(hex => 
+      `<div class="nx-hero-palette-dot" style="background:${hex};box-shadow:0 0 8px ${hex}88"></div>`
+    ).join('');
+
+    heroCard.innerHTML = `
+      <div class="nx-hero-visual-col">
+        <div class="nx-hero-visual-badge">${activeLook.badge}</div>
+        <div class="nx-hero-visual-fitscore">${activeLook.fitScore}% FIT</div>
+        <img src="${imgPath}" class="nx-hero-editorial-img" alt="${activeLook.title}" onclick="openLookbookModal('${imgPath}')" title="Click to view high-resolution photo" />
+        <div class="nx-hero-visual-caption">
+          <b>${activeLook.archetype}</b> · ${gender.toUpperCase()} EDIT
+          <div style="margin-top:5px">
+            <a href="javascript:void(0)" onclick="switchViewMode('lookbook')" style="color:var(--cyan);font-size:0.65rem;text-decoration:none;font-weight:700">📖 OPEN FULL CAPSULE LOOKBOOK</a>
+          </div>
+        </div>
+      </div>
+      <div class="nx-hero-info-col">
+        <div class="nx-hero-title-row">
+          <div class="nx-hero-tagline">${activeLook.icon} ${activeLook.badge} · ${torsoName}</div>
+          <div class="nx-hero-title">${activeLook.title}</div>
+        </div>
+        <div class="nx-hero-details-list">
+          <div class="nx-hero-detail-row"><b>Upper Piece:</b> <span>${activeLook.top}</span></div>
+          <div class="nx-hero-detail-row"><b>Lower Drape:</b> <span>${activeLook.bottom}</span></div>
+          <div class="nx-hero-detail-row"><b>Outerwear:</b> <span>${activeLook.outerwear}</span></div>
+          <div class="nx-hero-detail-row"><b>Footwear:</b> <span>${activeLook.footwear}</span></div>
+          <div class="nx-hero-detail-row"><b>Accessories:</b> <span>${activeLook.accessories}</span></div>
+        </div>
+        <div class="nx-hero-rationale-box">
+          <b>BIOMECHANICAL TORSO EQUILIBRIUM (${torsoName})</b>
+          ${activeLook.torsoLogic}
+        </div>
+        <div class="nx-hero-bottom-actions">
+          <div class="nx-hero-palette-preview">
+            <span>Eye Palette Sync:</span>
+            ${dotsHtml}
+          </div>
+          <div style="font-size:0.7rem;color:var(--text-dim)">
+            <b>Size:</b> <span style="color:var(--gold)">${activeLook.recommendedSize}</span> · 
+            <span style="color:var(--magenta)">${activeLook.beautyAccent}</span>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="nx-btn nx-btn-ghost" style="padding:7px 14px;font-size:0.72rem" onclick="switchViewMode('lookbook')">
+              📖 View Lookbook
+            </button>
+            <button class="nx-btn nx-btn-cyan" style="padding:7px 18px;font-size:0.72rem" onclick="copyActiveLook('${activeLook.id}')">
+              📋 Copy Look Details
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+}
+
+function drawLookArtwork(canvasId, look, gender, torso){
+  const cv = document.getElementById(canvasId);
+  if(!cv) return;
+  const ctx = cv.getContext('2d');
+  cv.width = 320; cv.height = 240;
+
+  // Background gradient
+  const grad = ctx.createLinearGradient(0, 0, 320, 240);
+  grad.addColorStop(0, '#0a1020');
+  grad.addColorStop(0.5, '#050a16');
+  grad.addColorStop(1, '#02050c');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 320, 240);
+
+  // Spotlight cones
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(160, -20);
+  ctx.lineTo(60, 240);
+  ctx.lineTo(260, 240);
+  ctx.closePath();
+  const spot = ctx.createLinearGradient(160, 0, 160, 240);
+  spot.addColorStop(0, 'rgba(0, 212, 255, 0.22)');
+  spot.addColorStop(1, 'rgba(0, 212, 255, 0.02)');
+  ctx.fillStyle = spot;
+  ctx.fill();
+  ctx.restore();
+
+  // Runway lines
+  ctx.strokeStyle = 'rgba(0, 212, 255, 0.3)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(100, 240); ctx.lineTo(135, 150); ctx.lineTo(185, 150); ctx.lineTo(220, 240);
+  ctx.stroke();
+
+  // Stylized editorial silhouette
+  ctx.save();
+  ctx.translate(160, 120);
+
+  // Aura glow
+  const aura = ctx.createRadialGradient(0, 0, 10, 0, 0, 80);
+  aura.addColorStop(0, look.accentHex + '55');
+  aura.addColorStop(1, 'transparent');
+  ctx.fillStyle = aura;
+  ctx.beginPath();
+  ctx.arc(0, 0, 80, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Draw silhouette figure
+  ctx.fillStyle = '#ffffff';
+  // Head
+  ctx.beginPath();
+  ctx.arc(0, -65, 9, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Torso / Garment geometry depending on Torso shape
+  ctx.fillStyle = look.eyeHarmonies[0] || look.accentHex;
+  ctx.beginPath();
+  if(torso === 'Hourglass'){
+    ctx.moveTo(-22, -52);
+    ctx.lineTo(22, -52);
+    ctx.quadraticCurveTo(10, -30, 21, -10);
+    ctx.lineTo(-21, -10);
+    ctx.quadraticCurveTo(-10, -30, -22, -52);
+  } else if(torso === 'Inverted Triangle' || torso === 'Mesomorph'){
+    ctx.moveTo(-28, -52);
+    ctx.lineTo(28, -52);
+    ctx.lineTo(14, -10);
+    ctx.lineTo(-14, -10);
+  } else if(torso === 'Pear / Triangle' || torso === 'Triangle'){
+    ctx.moveTo(-16, -52);
+    ctx.lineTo(16, -52);
+    ctx.lineTo(26, -10);
+    ctx.lineTo(-26, -10);
+  } else if(torso === 'Apple / Round' || torso === 'Endomorph'){
+    ctx.moveTo(-20, -52);
+    ctx.lineTo(20, -52);
+    ctx.quadraticCurveTo(27, -30, 20, -10);
+    ctx.lineTo(-20, -10);
+    ctx.quadraticCurveTo(-27, -30, -20, -52);
+  } else if(torso === 'Petite / Compact' || torso === 'Ectomorph'){
+    ctx.moveTo(-18, -48);
+    ctx.lineTo(18, -48);
+    ctx.lineTo(14, -14);
+    ctx.lineTo(-14, -14);
+  } else {
+    // Rectangle / Balanced
+    ctx.moveTo(-22, -52);
+    ctx.lineTo(22, -52);
+    ctx.lineTo(18, -10);
+    ctx.lineTo(-18, -10);
+  }
+  ctx.closePath();
+  ctx.fill();
+
+  // Lower drape (Trousers / Skirt)
+  ctx.fillStyle = look.eyeHarmonies[1] || '#111827';
+  ctx.beginPath();
+  if(torso === 'Inverted Triangle' || torso === 'Mesomorph'){
+    ctx.moveTo(-14, -10);
+    ctx.lineTo(14, -10);
+    ctx.lineTo(32, 68);
+    ctx.lineTo(4, 68);
+    ctx.lineTo(0, 10);
+    ctx.lineTo(-4, 68);
+    ctx.lineTo(-32, 68);
+  } else if(torso === 'Hourglass'){
+    ctx.moveTo(-21, -10);
+    ctx.lineTo(21, -10);
+    ctx.quadraticCurveTo(26, 15, 23, 68);
+    ctx.lineTo(4, 68);
+    ctx.lineTo(0, 10);
+    ctx.lineTo(-4, 68);
+    ctx.quadraticCurveTo(-26, 15, -23, 68);
+  } else if(torso === 'Petite / Compact'){
+    ctx.moveTo(-14, -14);
+    ctx.lineTo(14, -14);
+    ctx.lineTo(22, 66);
+    ctx.lineTo(3, 66);
+    ctx.lineTo(0, 8);
+    ctx.lineTo(-3, 66);
+    ctx.lineTo(-22, 66);
+  } else {
+    ctx.moveTo(-16, -10);
+    ctx.lineTo(16, -10);
+    ctx.lineTo(20, 68);
+    ctx.lineTo(3, 68);
+    ctx.lineTo(0, 10);
+    ctx.lineTo(-3, 68);
+    ctx.lineTo(-20, 68);
+  }
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.restore();
+
+  // Fashion branding text overlay
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  ctx.font = '700 10px Orbitron, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(look.archetype.toUpperCase(), 160, 218);
+
+  ctx.fillStyle = look.accentHex;
+  ctx.font = '600 8px Orbitron, monospace';
+  ctx.fillText(look.badge + ' // ' + look.fitScore + '% SYNERGY', 160, 230);
+}
+
+window.copyActiveLook = function(lookId){
+  const torsoName = state.torso.shape || 'Rectangle / Balanced';
+  const gender = gameState.activeGender || 'women';
+  const occasion = gameState.activeOccasion || 'work';
+  const gMatrix = OCCASION_WARDROBE_MATRIX[gender] || OCCASION_WARDROBE_MATRIX.women;
+  const torsoMatrix = gMatrix[torsoName] || gMatrix['Rectangle / Balanced'];
+  const look = torsoMatrix[occasion] || torsoMatrix.work;
+
+  const text = `=== ${gender.toUpperCase()} ${occasion.toUpperCase()} CAPSULE: ${look.title.toUpperCase()} ===
+Archetype: ${look.archetype}
+Fit Score: ${look.fitScore}% Fit Synergy
+Recommended Size: ${look.recommendedSize}
+
+[ENSEMBLE DETAILS]
+• Upper Piece: ${look.top}
+• Lower Drape: ${look.bottom}
+• Outerwear: ${look.outerwear}
+• Footwear: ${look.footwear}
+• Accessories: ${look.accessories}
+
+[BIOMECHANICAL TORSO EQUILIBRIUM (${torsoName})]
+${look.torsoLogic}
+
+[BEAUTY / GROOMING ACCENT]
+${look.beautyAccent}
+`;
+
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>{
+      const btn = event?.target;
+      if(btn){
+        const orig = btn.textContent;
+        btn.textContent = '✓ Copied Look!';
+        setTimeout(()=>btn.textContent=orig, 2200);
+      }
+    });
+  } else {
+    alert(text);
+  }
+};
+
+/* ---- Events ---- */
+irisSelect.addEventListener('change',()=>{if(irisSelect.value){state.face.iris=irisSelect.value;if(!state.face.irisHex)state.face.irisHex=IRIS_HEX[irisSelect.value];continueToHeightBtn.disabled=false;}});
+continueToHeightBtn.addEventListener('click',()=>{if(irisSelect.value){state.face.iris=irisSelect.value;state.face.irisHex=state.face.irisHex||IRIS_HEX[irisSelect.value];}goToPhase(2);});
+window.setDistPreset = function(distCm){
+  const el = document.getElementById('calibDist');
+  if(el){
+    el.value = distCm;
+    document.querySelectorAll('.nx-ground-presets .nx-preset-chip').forEach(chip => {
+      chip.classList.toggle('active', chip.textContent.includes(String(distCm)));
+    });
+  }
+};
+
+const calibBtn = document.getElementById('calibBtn');
+if(calibBtn){
+  calibBtn.addEventListener('click', ()=>{
+    if(!lastKeypoints){
+      statusEl.textContent = 'No pose detected — step fully into frame and try again.';
+      statusEl.classList.remove('win');
+      return;
+    }
+    const lm = getFullBodyLandmarks(lastKeypoints);
+    if(!lm || !lm.inView){
+      if(valHint) valHint.innerHTML = '<span style="color:#ff2d78">Could not see head + feet clearly.</span> Step back so your full body is visible in frame.';
+      statusEl.textContent = 'Could not see full body clearly. Step back and try again.';
+      statusEl.classList.remove('win');
+      return;
+    }
+
+    const D0 = parseFloat(document.getElementById('calibDist')?.value || '200');
+    const trueHeight = parseFloat(document.getElementById('calibHeight')?.value || '170');
+
+    if(D0 <= 20 || trueHeight <= 40){
+      statusEl.textContent = 'Please enter valid distance and height numbers.';
+      return;
+    }
+
+    const hPx0 = lm.hPx;
+    const C_scale = hPx0 * D0;
+    const solvedFpx = C_scale / trueHeight;
+
+    exactCalibration = {
+      active: true,
+      D0: D0,
+      H0: trueHeight,
+      hPx0: hPx0,
+      fPx: solvedFpx,
+      C_scale: C_scale,
+      timestamp: Date.now()
+    };
+
+    fPx = solvedFpx;
+    calibrated = true;
+    smoothedDist = D0;
+    smoothedHeight = trueHeight;
+
+    try{
+      localStorage.setItem('exact_calibration', JSON.stringify(exactCalibration));
+    }catch(e){}
+
+    // Update screen outputs immediately with 100% precision
+    distOut.textContent = D0.toFixed(0);
+    const ftIn = cmToFtIn(trueHeight);
+    heightOut.innerHTML = `${trueHeight.toFixed(1)} <span style="font-size:0.52em;opacity:0.85">cm</span><span style="display:block;font-size:0.42em;opacity:0.75;font-weight:400;margin-top:2px">${ftIn}</span>`;
+
+    const calibBadge = document.getElementById('calibStatusBadge');
+    if(calibBadge){
+      calibBadge.textContent = `EXACT LOCKED (${trueHeight}cm @ ${D0}cm)`;
+      calibBadge.className = 'nx-val-pill pass';
+    }
+    if(valStatusPill){
+      valStatusPill.textContent = 'EXACT CALIBRATED';
+      valStatusPill.className = 'nx-val-pill pass';
+    }
+    if(valHint){
+      valHint.textContent = `Calibrated with exact distance (${D0} cm) and height (${trueHeight} cm). Stand steady to capture!`;
+    }
+    statusEl.textContent = `🎯 Exact Calibration locked: ${trueHeight.toFixed(1)} cm at ${D0.toFixed(0)} cm distance!`;
+    statusEl.classList.add('win');
+
+    playNote(880, 0.1, 0.2);
+    ding();
+    speakText(`Calibrated accurately. Camera optics locked at ${trueHeight.toFixed(1)} centimeters for ${D0.toFixed(0)} centimeters distance.`);
+
+    shortBuf = [];
+    stableSamples = [];
+  });
+}
+
+function clearHeightPhase2Cache(notifyUser = true){
+  locked = false;
+  shortBuf = [];
+  stableSamples = [];
+  shotsHistory = [];
+  smoothedDist = null;
+  smoothedHeight = null;
+  state.height.value = null;
+  state.torso.shape = null;
+  state.anthropometry = null;
+  lastKeypoints = null;
+  lastAnthropometryProfile = null;
+  heightFilter.reset();
+  const anthroCard = document.getElementById('anthroCard');
+  if(anthroCard) anthroCard.style.display = 'none';
+
+  exactCalibration = {
+    active: false,
+    D0: 200,
+    H0: 170,
+    hPx0: null,
+    fPx: null,
+    C_scale: null
+  };
+  calibrated = false;
+
+  // Clear UI displays & scorecards
+  distOut.textContent = '–';
+  heightOut.textContent = '–';
+  const heightLbl = document.getElementById('heightLbl');
+  if(heightLbl) heightLbl.textContent = 'Estimated height (cm)';
+  const heightCard = document.getElementById('heightCard');
+  if(heightCard) heightCard.classList.remove('locked');
+  const remeasureBtn = document.getElementById('remeasureBtn');
+  if(remeasureBtn) remeasureBtn.style.display = 'none';
+  if(continueToRecBtn) continueToRecBtn.style.display = 'none';
+  if(gallery) gallery.innerHTML = '';
+  if(badge) badge.style.display = 'none';
+  setMeter(0);
+
+  // Clear input fields & reset geometry to clean defaults
+  if(manualHeightInput) manualHeightInput.value = '';
+  if(torsoSelect) torsoSelect.value = '';
+  const pt = document.getElementById('profileAutoText');
+  if(pt) pt.textContent = 'Auto-detecting…';
+
+  const camHeightEl = document.getElementById('camHeight');
+  if(camHeightEl) camHeightEl.value = '120';
+  const camTiltEl = document.getElementById('camTilt');
+  if(camTiltEl) camTiltEl.value = '0';
+  const calDistEl = document.getElementById('calibDist');
+  if(calDistEl) calDistEl.value = '200';
+  const calHeightEl = document.getElementById('calibHeight');
+  if(calHeightEl) calHeightEl.value = '170';
+
+  const ASSUMED_VFOV_DEG = 55;
+  fPx = (overlay.height / 2) / Math.tan(toRad(ASSUMED_VFOV_DEG / 2));
+  headOffsetCm = 14.0;
+
+  const calibBadge = document.getElementById('calibStatusBadge');
+  if(calibBadge){
+    calibBadge.textContent = 'UNCALIBRATED';
+    calibBadge.className = 'nx-val-pill';
+  }
+
+  const calibDetails = document.getElementById('calibDetails');
+  if(calibDetails) calibDetails.open = false;
+
+  const pill = document.getElementById('valStatusPill');
+  if(pill){ pill.textContent = 'READY'; pill.className = 'nx-val-pill pass'; }
+  const hint = document.getElementById('valHint');
+  if(hint) hint.textContent = 'Stand back so your head and feet are visible in frame…';
+
+  // Wipe any browser storage keys
+  try{
+    localStorage.removeItem('exact_calibration');
+    localStorage.removeItem('user_height');
+    localStorage.removeItem('phase2_cache');
+    sessionStorage.removeItem('user_height');
+    sessionStorage.removeItem('phase2_cache');
+  }catch(e){}
+
+  if(notifyUser){
+    statusEl.textContent = '🧹 Height Phase 2 cache completely cleared! Ready for fresh scan.';
+    statusEl.classList.remove('win');
+  }
+  updateValidationUI({ valid: false, humanDetected: false, checks: { upright: false }, reason: 'Stand back so your head and feet are visible in frame…' }, false);
+  checkPhase2Ready();
+}
+
+window.clearHeightPhase2Cache = clearHeightPhase2Cache;
+
+const clearCacheBtn = document.getElementById('clearCacheBtn');
+if(clearCacheBtn){
+  clearCacheBtn.addEventListener('click', () => {
+    clearHeightPhase2Cache(true);
+  });
+}
+
+function calculateHeightNow(){
+  if(!lastKeypoints){
+    statusEl.textContent = 'No pose detected — step into camera frame and try again.';
+    statusEl.classList.remove('win');
+    return;
+  }
+  const lm = getFullBodyLandmarks(lastKeypoints);
+  if(!lm || !lm.inView){
+    if(valHint) valHint.innerHTML = '<span style="color:#ff2d78">Cannot see full body clearly.</span> Step back so your head and feet are visible in frame.';
+    statusEl.textContent = 'Full body not detected — step back so head and feet are in view.';
+    statusEl.classList.remove('win');
+    return;
+  }
+
+  const h_px = lm.hPx;
+  let currentDist, currentHeight;
+
+  if(exactCalibration && exactCalibration.active && exactCalibration.fPx){
+    currentDist = exactCalibration.C_scale / h_px;
+    currentHeight = (h_px * currentDist) / exactCalibration.fPx;
+  } else {
+    const defaultFpx = (overlay.height / 2) / Math.tan(toRad(27.5));
+    const assumedH = parseFloat(document.getElementById('calibHeight')?.value || '170');
+    currentDist = (defaultFpx * assumedH) / h_px;
+    currentHeight = (h_px * currentDist) / defaultFpx;
+  }
+
+  if(currentHeight > 50 && currentHeight < 260){
+    lockReading(currentHeight, currentDist);
+    statusEl.textContent = `⚡ Height Calculated: ${currentHeight.toFixed(1)} cm (${cmToFtIn(currentHeight)})!`;
+    statusEl.classList.add('win');
+  } else {
+    statusEl.textContent = 'Height measurement out of expected bounds — check your posture and try again.';
+  }
+}
+
+const calcHeightBtn = document.getElementById('calcHeightBtn');
+if(calcHeightBtn){
+  calcHeightBtn.addEventListener('click', calculateHeightNow);
+}
+const resetBtn = document.getElementById('resetBtn');
+if(resetBtn){
+  resetBtn.addEventListener('click', calculateHeightNow);
+}
+
+document.getElementById('remeasureBtn').addEventListener('click',()=>{
+  locked = false;
+  shortBuf = [];
+  stableSamples = [];
+  smoothedDist = null;
+  smoothedHeight = null;
+  heightFilter.reset();
+  document.getElementById('heightLbl').textContent = 'Estimated height (cm)';
+  document.getElementById('heightCard').classList.remove('locked');
+  document.getElementById('remeasureBtn').style.display = 'none';
+  setMeter(0);
+  statusEl.textContent = 'Step back so your head and feet are visible in frame…';
+  statusEl.classList.remove('win');
+  updateValidationUI({ valid: false, humanDetected: false, checks: { upright: false }, reason: 'Stand back so your head and feet are visible in frame…' }, false);
+});
+useManualHeightBtn.addEventListener('click',()=>{
+  const val=parseFloat(manualHeightInput.value);
+  if(!(val>50&&val<260)){statusEl.textContent='Enter a height between 50 and 260 cm.';return;}
+  state.height.value=val;
+  const ftIn=cmToFtIn(val);
+  heightOut.innerHTML=`${val.toFixed(1)} <span style="font-size:0.52em;opacity:0.85">cm</span><span style="display:block;font-size:0.42em;opacity:0.75;font-weight:400;margin-top:2px">${ftIn}</span>`;
+  distOut.textContent='–';
+  statusEl.textContent=`Using manual height of ${val.toFixed(1)} cm (${ftIn}).`;
+  speakText(`Height set to ${val.toFixed(1)} centimeters. That is ${ftIn}.`);
+  checkPhase2Ready();
+});
+torsoSelect.addEventListener('change',()=>{if(torsoSelect.value)state.torso.shape=torsoSelect.value;checkPhase2Ready();});
+continueToRecBtn.addEventListener('click',()=>{if(torsoSelect.value)state.torso.shape=torsoSelect.value;goToPhase(3);});
+
+const copyPassportBtn = document.getElementById('copyPassportBtn');
+if(copyPassportBtn){
+  copyPassportBtn.addEventListener('click', ()=>{
+    const text = `=== BIOMETRIC STYLE PASSPORT ===
+Ticket ID: ${state.face.ticketId || 'ST-7492'}
+Standing Height: ${state.height.value ? state.height.value.toFixed(1) + ' cm' : 'N/A'}
+Torso Silhouette: ${state.torso.shape || 'Rectangle / Balanced'}
+Eye / Iris Color: ${state.face.iris || 'Brown'}
+Face Geometry: ${state.face.shape || 'Standard Oval'}
+
+--- ANTHROPOMETRIC FIT & BEAUTY (DATASET 1 & 2) ---
+Recommended Size: ${document.getElementById('recSizeOut')?.textContent || 'M / L'}
+Primary Fit: ${document.getElementById('recStyleOut')?.textContent || 'Casual'}
+Lip Accent: ${document.getElementById('recLipOut')?.textContent || 'Velvet'}
+Regional Style: ${document.getElementById('recCountryOut')?.textContent || 'High-Fashion'}
+XP Earned: ${xp} XP
+
+Generated by Antigravity Bio-Scan & Stylist Studio.`;
+
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(()=>{
+        copyPassportBtn.textContent = '✓ Passport Copied to Clipboard!';
+        setTimeout(()=>{ copyPassportBtn.textContent = '📋 Copy Style Passport'; }, 2500);
+      });
+    } else {
+      alert('Passport Details:\n\n' + text);
+    }
+  });
+}
+
+startOverBtn.addEventListener('click',()=>{
+  faceLocked=false;faceShortBuf=[];faceStableCount=0;irisColorAccum=[];
+  lastTmPrediction=null;tmClassifyCounter=0;
+  state.face={shape:null,widthCm:null,lengthCm:null,ticketId:null,iris:null,irisHex:null,confidence:null,ipdPx:null,jawRatio:null};
+  if(confOut)confOut.textContent='–';
+  if(ipdOut)ipdOut.textContent='–';
+  if(jawRatioOut)jawRatioOut.textContent='–';
+  faceShapeOut.textContent='–';faceWidthOut.textContent='–';faceLengthOut.textContent='–';ticketIdOut.textContent='–';
+  irisSelect.value='';irisGrid.querySelectorAll('.nx-iris-chip').forEach(c=>c.classList.remove('selected'));faceStatsBox.style.display='none';continueToHeightBtn.disabled=true;
+  locked=false;shortBuf=[];stableSamples=[];shotsHistory=[];state.height.value=null;state.torso.shape=null;
+  torsoSelect.value='';manualHeightInput.value='';distOut.textContent='–';heightOut.textContent='–';
+  document.getElementById('heightLbl').textContent='Estimated height (cm)';document.getElementById('heightCard').classList.remove('locked');
+  document.getElementById('remeasureBtn').style.display='none';continueToRecBtn.style.display='none';
+  gallery.innerHTML='';badge.style.display='none';setMeter(0);xp=0;streak=0;updateGameHUD();
+
+  setQuest('Lock Your Bio-Scan','Center your face in the frame and hold still — charge the energy meter to 100% to unlock the Height Quest.',1);
+  goToPhase(1);statusEl.textContent='Scanner ready. Step into frame and hold still.';statusEl.classList.remove('win');
+});
+
+/* ---- Init ---- */
+updateGameHUD();
+setQuest('Lock Your Bio-Scan','Center your face in the frame and hold still — charge the energy meter to 100% to unlock the Height Quest.',1);
+setup();
+</script>
+<!-- Lightbox Modal -->
+<div class="nx-lightbox-overlay" id="lightboxModal" onclick="closeLookbookModal()">
+  <button class="nx-lightbox-close" onclick="closeLookbookModal()">✕</button>
+  <img src="" id="lightboxImg" class="nx-lightbox-img" alt="Zoomed View" onclick="event.stopPropagation()" />
+</div>
+</body>
+</html>
