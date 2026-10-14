@@ -1,0 +1,2476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Orchard of Falling Ideas — Sir Isaac Newton's Speculative Physics Simulation & Grand Idea Laboratory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,700;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   THE ORCHARD OF FALLING IDEAS — MASTER DESIGN SYSTEM & THEMES
+   ========================================================================== */
+:root {
+  --sky-top: #1b3558;
+  --sky-mid: #4a759e;
+  --sky-bot: #f2cf9e;
+  --sun-glow: rgba(255, 230, 160, 0.45);
+  --grass-1: #3b6b32;
+  --grass-2: #24461f;
+  --ground-dark: #1a2f16;
+  --bark-1: #4a2f1b;
+  --bark-2: #2b180d;
+  --bark-highlight: #70472b;
+  --leaf-base: #3e7b34;
+  --leaf-light: #5ba34e;
+  --leaf-shadow: #224d1a;
+  --apple-red: #d62839;
+  --apple-glow: rgba(214, 40, 57, 0.55);
+  --gold-accent: #f4c430;
+  --parchment: #f9f5ea;
+  --parchment-border: #dcd2be;
+  --ink-primary: #1e1b18;
+  --ink-muted: #5e574f;
+  --glass-bg: rgba(24, 28, 42, 0.78);
+  --glass-border: rgba(244, 196, 48, 0.28);
+  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.45);
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-title: 'Cinzel', serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-mono: 'Space Mono', monospace;
+}
+
+[data-theme="twilight"] {
+  --sky-top: #0a1128;
+  --sky-mid: #2c1a4d;
+  --sky-bot: #803d6d;
+  --sun-glow: rgba(255, 140, 180, 0.35);
+  --grass-1: #1f3b2e;
+  --grass-2: #10231b;
+  --leaf-base: #28543e;
+  --leaf-light: #3f7e5e;
+  --apple-red: #ff3366;
+  --apple-glow: rgba(255, 51, 102, 0.65);
+}
+
+[data-theme="midnight"] {
+  --sky-top: #030712;
+  --sky-mid: #0b152d;
+  --sky-bot: #162447;
+  --sun-glow: rgba(180, 215, 255, 0.25);
+  --grass-1: #11221a;
+  --grass-2: #08130d;
+  --leaf-base: #1a382b;
+  --leaf-light: #2d5a44;
+  --apple-red: #ff4d6d;
+  --apple-glow: rgba(0, 242, 254, 0.7);
+}
+
+[data-theme="aurora"] {
+  --sky-top: #041218;
+  --sky-mid: #073b3a;
+  --sky-bot: #145952;
+  --sun-glow: rgba(64, 255, 180, 0.35);
+  --grass-1: #16382b;
+  --grass-2: #0d211a;
+  --leaf-base: #1e5e48;
+  --leaf-light: #2bd99f;
+  --apple-red: #e63946;
+  --apple-glow: rgba(64, 255, 180, 0.8);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+body {
+  background: #090e17;
+  color: #fff;
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ==========================================================================
+   NAVIGATION & TOP COMMAND BAR
+   ========================================================================== */
+.top-nav {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(1280px, 96vw);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 20px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 999px;
+  box-shadow: 0 12px 36px rgba(0,0,0,0.5);
+}
+
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ff6b6b, #c9182b 75%);
+  box-shadow: 0 0 16px var(--apple-glow);
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+}
+
+.brand-text h1 {
+  font-family: var(--font-title);
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  color: var(--gold-accent);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+}
+.brand-text p {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.7);
+  letter-spacing: 0.05em;
+  font-family: var(--font-mono);
+}
+
+.nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.nav-btn {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: #fff;
+  border-radius: 999px;
+  padding: 7px 15px;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.22s ease;
+}
+.nav-btn:hover {
+  background: rgba(255,255,255,0.18);
+  border-color: var(--gold-accent);
+  color: var(--gold-accent);
+  transform: translateY(-1px);
+}
+.nav-btn.primary {
+  background: linear-gradient(135deg, #c9182b, #8a0c1a);
+  border-color: #ff6b6b;
+  box-shadow: 0 4px 14px rgba(201, 24, 43, 0.4);
+}
+.nav-btn.primary:hover {
+  background: linear-gradient(135deg, #e62238, #a81023);
+  box-shadow: 0 6px 20px rgba(230, 34, 56, 0.6);
+}
+
+/* ==========================================================================
+   SIMULATION STAGE (HERO CANVAS VIEWPORT)
+   ========================================================================== */
+.sim-viewport {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  min-height: 700px;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 45%, var(--sky-bot) 88%);
+  transition: background 0.8s ease;
+}
+
+/* Atmospheric Sun/Moon & Rays */
+.celestial-orb {
+  position: absolute;
+  top: 10%;
+  right: 18%;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fffbe6 30%, var(--gold-accent) 70%, transparent 100%);
+  filter: blur(1px);
+  box-shadow: 0 0 100px var(--sun-glow), 0 0 200px var(--sun-glow);
+  pointer-events: none;
+  transition: all 0.8s ease;
+}
+
+.sunbeam-canvas, .particle-canvas, .physics-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.physics-canvas {
+  pointer-events: auto;
+  z-index: 10;
+}
+
+/* Floating Horizon Mountains & Rolling Hills */
+.orchard-backdrop {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ==========================================================================
+   HUD FLOATING CONTROLS
+   ========================================================================== */
+.gravity-hud {
+  position: absolute;
+  top: 90px;
+  left: 30px;
+  z-index: 30;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 16px;
+  width: 250px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.hud-title {
+  font-family: var(--font-title);
+  font-size: 0.78rem;
+  letter-spacing: 0.15em;
+  color: var(--gold-accent);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding-bottom: 8px;
+}
+
+.gravity-modes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.grav-btn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #d1d5db;
+  padding: 7px 6px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: all 0.2s;
+}
+.grav-btn span {
+  font-size: 0.65rem;
+  opacity: 0.6;
+}
+.grav-btn:hover {
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+}
+.grav-btn.active {
+  background: linear-gradient(135deg, rgba(244,196,48,0.25), rgba(201,24,43,0.3));
+  border-color: var(--gold-accent);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 0 12px rgba(244,196,48,0.3);
+}
+
+.slider-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.slider-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.7);
+  font-family: var(--font-mono);
+}
+.slider-group input[type="range"] {
+  accent-color: var(--gold-accent);
+  cursor: pointer;
+}
+
+.stats-card {
+  background: rgba(0,0,0,0.3);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #a7f3d0;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Action Quick Bar */
+.action-hud {
+  position: absolute;
+  bottom: 25px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--glass-bg);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--glass-border);
+  padding: 10px 18px;
+  border-radius: 999px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.6);
+}
+
+.action-chip {
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+  color: #fff;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.22s;
+}
+.action-chip:hover {
+  background: rgba(255,255,255,0.2);
+  border-color: var(--gold-accent);
+  color: var(--gold-accent);
+  transform: translateY(-2px);
+}
+.action-chip.shake-btn {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  border-color: #fbbf24;
+  color: #1a1003;
+  font-weight: 800;
+}
+.action-chip.shake-btn:hover {
+  box-shadow: 0 0 20px rgba(245, 158, 11, 0.6);
+}
+
+/* Live Idea Synthesis Box / Crucible */
+.crucible-hud {
+  position: absolute;
+  top: 90px;
+  right: 30px;
+  z-index: 30;
+  background: var(--glass-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 16px;
+  width: 280px;
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.crucible-dropzone {
+  background: rgba(0,0,0,0.35);
+  border: 2px dashed rgba(244, 196, 48, 0.4);
+  border-radius: 12px;
+  padding: 14px 10px;
+  text-align: center;
+  transition: all 0.25s;
+}
+.crucible-dropzone.ready {
+  border-color: var(--gold-accent);
+  background: rgba(244, 196, 48, 0.12);
+  box-shadow: inset 0 0 16px rgba(244, 196, 48, 0.2);
+}
+.crucible-dropzone p {
+  font-size: 0.74rem;
+  color: rgba(255,255,255,0.7);
+  font-family: var(--font-mono);
+  margin-top: 4px;
+}
+.crucible-slots {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.crucible-slot {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.25);
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  background: rgba(255,255,255,0.05);
+  transition: transform 0.2s;
+}
+.crucible-slot.filled {
+  border-color: var(--gold-accent);
+  background: radial-gradient(circle, #ff6b6b, #c9182b);
+  box-shadow: 0 0 14px var(--apple-glow);
+  transform: scale(1.08);
+}
+
+.synthesis-result-box {
+  background: rgba(255,255,255,0.05);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 0.75rem;
+  color: var(--parchment);
+  border-left: 3px solid var(--gold-accent);
+  display: none;
+  animation: fadeIn 0.4s ease-out;
+}
+.synthesis-result-box.show {
+  display: block;
+}
+.synthesis-result-box b {
+  display: block;
+  color: var(--gold-accent);
+  font-family: var(--font-title);
+  margin-bottom: 4px;
+}
+
+/* ==========================================================================
+   NEWTON'S THOUGHT SPEECH BUBBLE & NOTATIONS
+   ========================================================================== */
+.newton-speech {
+  position: absolute;
+  z-index: 25;
+  background: var(--parchment);
+  color: var(--ink-primary);
+  border: 2px solid var(--bark-1);
+  border-radius: 14px;
+  padding: 10px 16px;
+  max-width: 260px;
+  font-family: var(--font-serif);
+  font-size: 0.95rem;
+  font-style: italic;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.45);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(10px) scale(0.9);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.newton-speech:after {
+  content: "";
+  position: absolute;
+  bottom: -10px;
+  left: 30px;
+  border-width: 10px 10px 0;
+  border-style: solid;
+  border-color: var(--parchment) transparent;
+}
+.newton-speech.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* ==========================================================================
+   SPECULATIVE DOSSIER MODAL
+   ========================================================================== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 8, 16, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dossier-card {
+  background: var(--parchment);
+  color: var(--ink-primary);
+  width: min(680px, 94vw);
+  max-height: 90vh;
+  border-radius: 20px;
+  border: 4px solid #4a3424;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.8), inset 0 0 40px rgba(180, 140, 90, 0.25);
+  overflow-y: auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  transform: scale(0.92) translateY(20px);
+  transition: transform 0.32s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+}
+.modal-overlay.open .dossier-card {
+  transform: scale(1) translateY(0);
+}
+
+.dossier-header {
+  padding: 24px 28px 18px;
+  background: linear-gradient(180deg, #ede3cb 0%, #e0d2b2 100%);
+  border-bottom: 2px dashed #b8a682;
+  position: relative;
+}
+
+.dossier-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.15em;
+  color: #7d3f18;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.dossier-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dossier-author {
+  font-family: var(--font-title);
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #2b1a0d;
+  letter-spacing: 0.02em;
+}
+
+.dossier-emoji {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #fdfbf7;
+  border: 2px solid #8c6a49;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+}
+
+.dossier-project {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: #8c2323;
+  margin-top: 4px;
+}
+
+.dossier-body {
+  padding: 24px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  line-height: 1.7;
+}
+
+.dossier-inquiry {
+  background: rgba(140, 35, 35, 0.08);
+  border-left: 4px solid #8c2323;
+  padding: 14px 18px;
+  border-radius: 0 10px 10px 0;
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  font-style: italic;
+  color: #4a1515;
+}
+
+.dossier-desc {
+  font-size: 0.95rem;
+  color: #38312b;
+}
+
+.dossier-interactive-choice {
+  background: #ede6d4;
+  border: 1px solid #d4c8af;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.choice-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  color: #695641;
+  font-weight: 700;
+}
+.choice-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.choice-btn {
+  flex: 1;
+  min-width: 140px;
+  background: #fdfbf7;
+  border: 1px solid #8c6a49;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2b1a0d;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+.choice-btn:hover {
+  background: #8c2323;
+  color: #fff;
+  border-color: #8c2323;
+}
+.choice-btn.selected {
+  background: #2b1a0d;
+  color: var(--gold-accent);
+  border-color: #2b1a0d;
+}
+
+.dossier-deliverables {
+  border-top: 1px solid #ddd2be;
+  padding-top: 14px;
+}
+.dossier-deliverables b {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  color: #73593f;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 8px;
+}
+.dossier-deliverables ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dossier-deliverables li {
+  font-size: 0.88rem;
+  color: #4a3e35;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.dossier-deliverables li:before {
+  content: "✦";
+  color: #8c2323;
+  font-size: 0.8rem;
+}
+
+.dossier-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+.dossier-tag {
+  background: #ded4bf;
+  color: #453629;
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+}
+.dossier-tag.thread-tag {
+  background: #f7dcd5;
+  color: #8c2323;
+  border: 1px solid #e8ada0;
+  font-weight: 700;
+}
+
+.dossier-footer {
+  padding: 16px 28px 24px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  background: #f3ecdb;
+  border-top: 1px solid #decfaa;
+}
+
+.dossier-close-btn {
+  background: #3b281b;
+  color: var(--parchment);
+  border: none;
+  border-radius: 999px;
+  padding: 10px 24px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.dossier-close-btn:hover {
+  background: #8c2323;
+}
+
+/* ==========================================================================
+   CONSTELLATION & THREAD MATRIX DRAWER
+   ========================================================================== */
+.drawer-panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 75vh;
+  background: rgba(13, 20, 36, 0.95);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 2px solid var(--gold-accent);
+  box-shadow: 0 -20px 60px rgba(0,0,0,0.7);
+  z-index: 120;
+  transform: translateY(100%);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  padding: 24px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+.drawer-panel.open {
+  transform: translateY(0);
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.drawer-header h3 {
+  font-family: var(--font-title);
+  color: var(--gold-accent);
+  font-size: 1.2rem;
+  letter-spacing: 0.1em;
+}
+
+.threads-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.thread-card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.25s;
+}
+.thread-card.active {
+  border-color: var(--gold-accent);
+  background: rgba(244, 196, 48, 0.08);
+  box-shadow: 0 0 16px rgba(244, 196, 48, 0.15);
+}
+.thread-card-title {
+  font-family: var(--font-serif);
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+}
+.thread-card-desc {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.65);
+}
+.thread-authors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.thread-author-chip {
+  background: rgba(255,255,255,0.1);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+}
+.thread-author-chip.explored {
+  background: #8c2323;
+  color: #fff;
+}
+
+/* ==========================================================================
+   TOAST NOTIFICATION
+   ========================================================================== */
+#toast {
+  position: fixed;
+  bottom: 85px;
+  left: 50%;
+  transform: translateX(-50%) translateY(30px);
+  background: rgba(18, 24, 40, 0.95);
+  color: var(--gold-accent);
+  border: 1px solid var(--gold-accent);
+  padding: 10px 20px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-family: var(--font-mono);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+  z-index: 150;
+  max-width: 90vw;
+  text-align: center;
+}
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 860px) {
+  .gravity-hud { display: none; }
+  .crucible-hud { display: none; }
+  .top-nav { width: 95vw; padding: 8px 14px; }
+  .brand-text p { display: none; }
+}
+</style>
+</head>
+<body data-theme="golden">
+
+<!-- TOP COMMAND BAR -->
+<nav class="top-nav" aria-label="Main Navigation">
+  <div class="brand-group">
+    <div class="brand-icon">🍎</div>
+    <div class="brand-text">
+      <h1>THE ORCHARD OF FALLING IDEAS</h1>
+      <p>SIR ISAAC NEWTON'S SPECULATIVE PHYSICS & IDEA SIMULATION</p>
+    </div>
+  </div>
+
+  <div class="nav-controls">
+    <button class="nav-btn" id="btnConstellation" title="View the speculative threads constellation">
+      ✨ <span>Threads Web</span> (<span id="threadsBadge">0/5</span>)
+    </button>
+    <button class="nav-btn" id="btnTheme" title="Cycle Environmental Atmosphere">
+      🌅 <span id="themeName">Golden Hour</span>
+    </button>
+    <button class="nav-btn" id="btnAudio" title="Toggle Synthesized Soundscape">
+      🔊 <span>Sound: ON</span>
+    </button>
+    <button class="nav-btn primary" id="btnRegrow" title="Reverse entropy and regrow all apples">
+      🌱 <span>Regrow Tree</span>
+    </button>
+  </div>
+</nav>
+
+<!-- MAIN SIMULATION VIEWPORT -->
+<div class="sim-viewport" id="viewport">
+  <div class="celestial-orb" id="celestialOrb"></div>
+  <canvas class="sunbeam-canvas" id="sunbeamCanvas"></canvas>
+  
+  <!-- Backdrop Vector (Rolling Hills, Distant Woolsthorpe Manor) -->
+  <svg class="orchard-backdrop" viewBox="0 0 1600 1000" preserveAspectRatio="none">
+    <defs>
+      <linearGradient id="hillGrad1" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--grass-1)"/>
+        <stop offset="100%" stop-color="var(--ground-dark)"/>
+      </linearGradient>
+      <linearGradient id="hillGrad2" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="var(--grass-2)"/>
+        <stop offset="100%" stop-color="var(--ground-dark)"/>
+      </linearGradient>
+      <linearGradient id="trunkGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="var(--bark-2)"/>
+        <stop offset="50%" stop-color="var(--bark-1)"/>
+        <stop offset="100%" stop-color="var(--bark-highlight)"/>
+      </linearGradient>
+      <radialGradient id="foliageGrad1" cx="45%" cy="40%" r="60%">
+        <stop offset="0%" stop-color="var(--leaf-light)"/>
+        <stop offset="65%" stop-color="var(--leaf-base)"/>
+        <stop offset="100%" stop-color="var(--leaf-shadow)"/>
+      </radialGradient>
+      <filter id="foliageShadow" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="0" dy="15" stdDeviation="20" flood-color="#000" flood-opacity="0.35"/>
+      </filter>
+    </defs>
+
+    <!-- Distant hills -->
+    <path d="M0 650 Q450 530 900 620 T1600 600 L1600 1000 L0 1000 Z" fill="url(#hillGrad2)" opacity="0.6"/>
+    <path d="M0 720 Q350 630 800 690 T1600 680 L1600 1000 L0 1000 Z" fill="url(#hillGrad1)"/>
+
+    <!-- Foreground Orchard Oak / Tree of Knowledge -->
+    <!-- Tree Trunk & Roots -->
+    <path d="M680 880 C680 730 670 540 610 440 C560 360 480 300 380 260 L410 240 C530 280 640 360 690 460 C740 560 760 720 780 880 C810 885 860 900 920 920 C850 910 790 900 770 910 C750 920 730 940 710 960 C690 930 670 910 650 910 C620 910 570 920 500 940 C560 910 620 890 680 880 Z" fill="url(#trunkGrad)"/>
+    <path d="M650 490 C580 430 450 410 320 400 L330 380 C480 390 610 410 680 470 Z" fill="url(#trunkGrad)"/>
+    <path d="M720 430 C820 360 960 340 1100 340 L1090 365 C960 365 830 385 745 450 Z" fill="url(#trunkGrad)"/>
+
+    <!-- Lush Foliage Canopy Clusters (Dynamic rustle target) -->
+    <g id="treeCanopy" filter="url(#foliageShadow)">
+      <circle cx="340" cy="240" r="160" fill="url(#foliageGrad1)"/>
+      <circle cx="480" cy="180" r="180" fill="url(#foliageGrad1)"/>
+      <circle cx="680" cy="160" r="210" fill="url(#foliageGrad1)"/>
+      <circle cx="880" cy="190" r="180" fill="url(#foliageGrad1)"/>
+      <circle cx="1040" cy="260" r="150" fill="url(#foliageGrad1)"/>
+      <circle cx="560" cy="280" r="170" fill="url(#foliageGrad1)"/>
+      <circle cx="780" cy="270" r="170" fill="url(#foliageGrad1)"/>
+      <circle cx="400" cy="350" r="140" fill="url(#foliageGrad1)"/>
+      <circle cx="940" cy="340" r="140" fill="url(#foliageGrad1)"/>
+    </g>
+
+    <!-- Sir Isaac Newton Character Illustration -->
+    <g id="newtonCharacter" transform="translate(710, 720)">
+      <!-- Shadow under Newton -->
+      <ellipse cx="60" cy="140" rx="90" ry="24" fill="#0c170d" opacity="0.6"/>
+
+      <!-- Legs & Breeches -->
+      <path d="M30 110 C45 130 90 135 120 130 C130 130 145 125 155 135 C155 145 130 150 110 145 C80 145 40 140 20 130 Z" fill="#2b2d42"/>
+      <path d="M40 90 C30 110 35 135 50 145 C60 140 70 120 70 100 Z" fill="#1f2030"/>
+
+      <!-- 17th Century Coat & Waistcoat -->
+      <path d="M15 45 C30 30 75 25 105 40 C115 65 110 110 95 125 C70 135 30 130 15 115 C5 95 5 65 15 45 Z" fill="#4a1525"/>
+      <path d="M40 38 L55 90 L75 90 L85 40 Z" fill="#f7f4ea"/> <!-- Cravat / Linen -->
+
+      <!-- Newton's Arms, Quill & Parchment -->
+      <!-- Left arm holding leather book -->
+      <path d="M25 55 C15 70 20 95 38 102 C45 105 50 95 45 80 Z" fill="#4a1525"/>
+      <rect x="35" y="80" width="38" height="48" rx="4" transform="rotate(-15 35 80)" fill="#78350f" stroke="#451a03" stroke-width="2"/>
+      <rect x="39" y="83" width="30" height="42" rx="2" transform="rotate(-15 35 80)" fill="#fefae0"/>
+
+      <!-- Right arm holding goose feather quill -->
+      <path d="M85 55 C100 70 95 90 80 98 C75 98 75 90 80 75 Z" fill="#4a1525"/>
+      <path d="M82 88 Q100 80 115 65" stroke="#fefae0" stroke-width="3" stroke-linecap="round" fill="none"/>
+
+      <!-- Newton's Head & Famous Scholarly Wig -->
+      <g id="newtonHead">
+        <!-- Neck -->
+        <rect x="52" y="24" width="18" height="18" fill="#fcd5ce"/>
+        <!-- Face -->
+        <path d="M50 15 C50 5 70 5 72 15 C74 25 70 32 60 34 C52 32 48 24 50 15 Z" fill="#ffdfba"/>
+        <!-- Eyes & Spectacles -->
+        <circle cx="56" cy="17" r="4.5" fill="none" stroke="#b45309" stroke-width="1.2"/>
+        <circle cx="66" cy="17" r="4.5" fill="none" stroke="#b45309" stroke-width="1.2"/>
+        <line x1="60.5" y1="17" x2="61.5" y2="17" stroke="#b45309" stroke-width="1.2"/>
+        <circle cx="57" cy="17" r="1.5" fill="#1f2937" id="newtonPupilL"/>
+        <circle cx="67" cy="17" r="1.5" fill="#1f2937" id="newtonPupilR"/>
+        <!-- Nose & Mouth -->
+        <path d="M61 17 L60 23 L63 24" stroke="#d97706" stroke-width="1.2" fill="none"/>
+        <path d="M57 28 Q61 30 65 28" stroke="#b45309" stroke-width="1.2" fill="none" id="newtonMouth"/>
+
+        <!-- Flowing Natural Baroque Curls / Wig -->
+        <path d="M42 12 C35 -5 85 -8 80 12 C88 20 86 35 78 42 C72 38 72 32 75 25 C75 10 48 10 46 25 C43 32 40 40 35 40 C32 30 35 20 42 12 Z" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1"/>
+      </g>
+
+      <!-- Bonk Stars & Lightbulb Reaction Anchor -->
+      <g id="newtonFxAnchor" transform="translate(60, -25)"></g>
+    </g>
+  </svg>
+
+  <!-- Interactive 2D/2.5D Physics Canvas for Apples, Sparks, Threads -->
+  <canvas class="physics-canvas" id="physicsCanvas"></canvas>
+  <canvas class="particle-canvas" id="particleCanvas"></canvas>
+
+  <!-- Newton's Dynamic Speech Bubble -->
+  <div class="newton-speech" id="newtonSpeech">
+    "Aha! An apple from the future boughs..."
+  </div>
+
+  <!-- HUD: Gravity Multiverse Controls -->
+  <div class="gravity-hud" aria-label="Physics Controls">
+    <div class="hud-title">
+      <span>GRAVITAS MULTIVERSE</span>
+      <span id="gravValDisplay">9.8 m/s²</span>
+    </div>
+    <div class="gravity-modes">
+      <button class="grav-btn active" data-g="earth">
+        <b>EARTH</b>
+        <span>9.8 m/s²</span>
+      </button>
+      <button class="grav-btn" data-g="moon">
+        <b>LUNAR</b>
+        <span>1.6 m/s²</span>
+      </button>
+      <button class="grav-btn" data-g="jupiter">
+        <b>JOVIAN</b>
+        <span>24.8 m/s²</span>
+      </button>
+      <button class="grav-btn" data-g="zero">
+        <b>ZERO-G</b>
+        <span>0.0 Float</span>
+      </button>
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-label">
+        <span>AETHER WIND VECTOR</span>
+        <span id="windDisplay">0.0 km/h</span>
+      </div>
+      <input type="range" id="windSlider" min="-30" max="30" value="4" step="1">
+    </div>
+
+    <div class="slider-group">
+      <div class="slider-label">
+        <span>APPLE RESTITUTION (BOUNCE)</span>
+        <span id="bounceDisplay">0.55</span>
+      </div>
+      <input type="range" id="bounceSlider" min="0.1" max="0.9" value="0.55" step="0.05">
+    </div>
+
+    <div class="stats-card">
+      <span>APPLES HARVESTED:</span>
+      <b id="harvestCount">0 / 11</b>
+    </div>
+  </div>
+
+  <!-- HUD: Speculative Idea Crucible / Combinatorial Synthesizer -->
+  <div class="crucible-hud" aria-label="Idea Synthesizer">
+    <div class="hud-title">
+      <span>NEWTON'S CRUCIBLE</span>
+      <span>COLLIDER</span>
+    </div>
+    <div class="crucible-dropzone" id="crucibleDropzone">
+      <div style="font-size:20px;">⚗️</div>
+      <b>DRAG 2 FALLEN APPLES HERE</b>
+      <p>Combine two future artifacts to generate an Emergent Synthesis</p>
+      <div class="crucible-slots">
+        <div class="crucible-slot" id="slotA">?</div>
+        <div class="crucible-slot" id="slotB">?</div>
+      </div>
+    </div>
+    <div class="synthesis-result-box" id="synthesisResult">
+      <b id="synTitle">Synthesis Discovery</b>
+      <p id="synDesc">Pairing text here...</p>
+    </div>
+  </div>
+
+  <!-- BOTTOM ACTION QUICK BAR -->
+  <div class="action-hud">
+    <button class="action-chip shake-btn" id="btnShakeTree" title="Violently shake the tree of knowledge">
+      ⚡ <span>SHAKE THE TREE</span>
+    </button>
+    <button class="action-chip" id="btnFastFall" title="Release all 11 apples in cascading trajectories">
+      🍎 <span>CASCADE ALL</span>
+    </button>
+    <button class="action-chip" id="btnBlackHole" title="Create a gravitational vortex around cursor">
+      🌀 <span id="vortexLabel">GRAVITY WELL: OFF</span>
+    </button>
+    <button class="action-chip" id="btnNewtonBonk" title="Guide nearest apple to Newton's head">
+      🎯 <span>BONK NEWTON</span>
+    </button>
+  </div>
+</div>
+
+<!-- SPECULATIVE DOSSIER MODAL -->
+<div class="modal-overlay" id="dossierModal" role="dialog" aria-modal="true" aria-labelledby="modalAuthor">
+  <div class="dossier-card">
+    <div class="dossier-header">
+      <span class="dossier-badge" id="modalStudio">STUDIO ARTIFACT · REHEARSING FUTURES</span>
+      <div class="dossier-title-row">
+        <div>
+          <h2 class="dossier-author" id="modalAuthor">Gouri</h2>
+          <div class="dossier-project" id="modalProject">Physiognomy Profiling Machine</div>
+        </div>
+        <div class="dossier-emoji" id="modalEmoji">🔍</div>
+      </div>
+    </div>
+
+    <div class="dossier-body">
+      <div class="dossier-inquiry" id="modalQuestion">
+        "Can a face be read, and who decides what the measurement says?"
+      </div>
+
+      <div class="dossier-desc" id="modalDesc">
+        Description notes...
+      </div>
+
+      <div class="dossier-interactive-choice">
+        <div class="choice-label">Philosophical Stance / Cast Your Vote:</div>
+        <div class="choice-btns" id="choiceContainer">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <div class="dossier-deliverables" id="modalDeliverablesSection">
+        <b>DOCUMENTED SUBMISSIONS & ARTIFACTS</b>
+        <ul id="modalDeliverablesList">
+          <!-- List items -->
+        </ul>
+      </div>
+
+      <div>
+        <div class="choice-label" style="margin-bottom:6px;">CONCEPTUAL THREADS & CLUSTERS</div>
+        <div class="dossier-tags" id="modalTags">
+          <!-- Tags -->
+        </div>
+      </div>
+    </div>
+
+    <div class="dossier-footer">
+      <button class="dossier-close-btn" id="modalCloseBtn">Return to Orchard</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONSTELLATION & THREAD MATRIX DRAWER -->
+<div class="drawer-panel" id="constellationDrawer">
+  <div class="drawer-header">
+    <h3>THE SPECULATIVE THREADS WEB</h3>
+    <button class="nav-btn" id="closeDrawerBtn">✕ Close</button>
+  </div>
+  <p style="font-size:0.85rem; color:rgba(255,255,255,0.7); max-width:700px;">
+    The 11 student speculative artifacts do not live in isolation. As apples fall and are explored, glowing gravitational threads link shared thematic inquiries across the studio.
+  </p>
+  <div class="threads-grid" id="threadsGrid">
+    <!-- Populated dynamically -->
+  </div>
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div id="toast"></div>
+
+<!-- ==========================================================================
+   SIMULATION ENGINE & DATA REPOSITORY
+   ========================================================================== -->
+<script>
+/* ==========================================================================
+   1. STUDENT SPECULATIVE PROJECTS REPOSITORY (ALL 11 ARTIFACTS)
+   ========================================================================== */
+const PROJECTS = [
+  {
+    id: 0,
+    e: "👂",
+    t: "Aabha Wagh",
+    p: "The DACian Era: Elie-Reader & Forest Listening",
+    q: "What would you choose to listen to if every screen went dark?",
+    th: ["Analog futures", "Ecological Sensing"],
+    d: "In a world where digital infrastructure is lost, and with it the context of information people consume, the DACians emerge. They are a solarpunk green-rust community that practises deep acoustic attunement, attempting to listen to a mysterious atmospheric frequency known as the fillámend.",
+    tags: ["HCD", "Rehearsing Futures", "Thinking Through Technologies"],
+    choices: ["Tune into the fillámend", "Preserve the lost digital signals"],
+    s: [
+      "Montage of world exploration & world-building brainstorming",
+      "World context and artefact kitbashing process",
+      "Concept note of the digsite artefact",
+      "Connecting speculative foresight artefacts to existing technology (Wizard of Oz)",
+      "Prototype version documentation",
+      "Video explaining the prototype artefact (Elie-Reader)"
+    ]
+  },
+  {
+    id: 1,
+    e: "✍️",
+    t: "Nikkon Sengupta",
+    p: "The City That Writes: Handwritten Currency",
+    q: "If your handwriting became currency, what would you write?",
+    th: ["Analog futures", "Surveillance", "Communication"],
+    d: "In an omnipresent surveillance society where smart voice assistants and predictive AI author every sentence, human handwriting becomes a precious rarity. Because machine vision monitors keyboard strokes and prompt structures, the irregular friction of ink and human tremor becomes the only un-monitored black-market currency.",
+    tags: ["HCD", "Rehearsing Futures", "Thinking Through Technologies"],
+    choices: ["Spend an imperfect handwritten note", "Surrender to the predictive algorithm"],
+    s: [
+      "A1 Montage",
+      "A2 Kitbashing documentation",
+      "A3 Concept note",
+      "Wizard of Oz setup",
+      "Process documentation",
+      "Video of the handwritten artifact"
+    ]
+  },
+  {
+    id: 2,
+    e: "📖",
+    t: "Ishita Sarin",
+    p: "The Memory Keeper: Compression & The Book",
+    q: "What would you compress out of your memory, and what would you keep in a book?",
+    th: ["Memory & Preservation", "Cognitive Systems"],
+    d: "Human recollection can now be stored, compressed, and restructured into physical and synthetic volumes. The twin artifacts Memory Book and Memory Compression ask what vital essence evaporates when memory becomes infinitely editable and lossy-compressed.",
+    tags: ["HCD", "Rehearsing Futures", "Thinking Through Technologies"],
+    choices: ["Retain painful raw memory", "Lossy-compress into pure comfort"],
+    s: [
+      "Rehearsing Future: montage, kitbashing artefact, digsite concept note",
+      "Thinking Through Technologies: A1 and A2 documentation",
+      "Final video: Memory Book",
+      "Final video: Memory Compression"
+    ]
+  },
+  {
+    id: 3,
+    e: "🌱",
+    t: "Medha",
+    p: "The Unwritten Seed: Ecological Foresight",
+    q: "An empty apple is still a question: what would you rehearse here?",
+    th: ["Speculative Ecology", "Unwritten Futures"],
+    d: "A speculative seedbank waiting to be germinated by studio participants. Exploring how spaces left intentionally uncatalogued invite audience co-creation rather than algorithmic prescription.",
+    tags: ["HCD", "Speculative Biology"],
+    choices: ["Leave the seed unwritten", "Plant an unexpected future"],
+    s: [
+      "Studio exploration slot",
+      "Speculative seed catalog draft"
+    ]
+  },
+  {
+    id: 4,
+    e: "🍃",
+    t: "Iniya",
+    p: "The Canopy of Tomorrow",
+    q: "What would you plant in an empty space like this one?",
+    th: ["Speculative Ecology", "Living Systems"],
+    d: "Examining architectural forestry, photosynthetic materials, and how micro-ecosystems reclaim abandoned computational structures in the post-industrial century.",
+    tags: ["HCD", "Bio-Futures"],
+    choices: ["Reclaim with ivy and moss", "Synthesize computational timber"],
+    s: [
+      "Future habitat notes",
+      "Canopy prototype matrix"
+    ]
+  },
+  {
+    id: 5,
+    e: "🔍",
+    t: "Gouri",
+    p: "Physiognomy Profiling Machine / MIRRORSAYS",
+    q: "Can a face be read, and who decides what the measurement says?",
+    th: ["Surveillance", "Biometric Profiling", "Algorithmic Identity"],
+    d: "A speculative carnival kiosk and distance-invariant computer vision installation. Visitors stand before optical scryers and pose estimators (MoveNet) that measure iris pigmentation, facial symmetry, and skeletal proportions, algorithmically dispensing determinist capsule wardrobes and speculative passports.",
+    tags: ["HCD", "Rehearsing Futures", "Thinking Through Technologies"],
+    choices: ["Accept the algorithmic diagnosis", "Subvert the optical scryer"],
+    s: [
+      "A1 Montage: first draft (MIRRORSAYS) & second draft (FinalMontage)",
+      "A2 Kitbashing documentation (Notion Archive)",
+      "A3 Digsite artefact: Physiognomy Profiling Machine",
+      "Thinking Through Technologies: A1 and A2 documentation",
+      "A3 Final video (shorter festival version)"
+    ]
+  },
+  {
+    id: 6,
+    e: "🎞️",
+    t: "Sudarsinii Mazumdar",
+    p: "By Any Media Necessary: Transmedia Assembly",
+    q: "By any media necessary: which medium would you reach for first?",
+    th: ["Experience Design", "Transmedia Assembly"],
+    d: "An exploration into visceral materiality and radical transmedia storytelling, rejecting single-platform narratives in favor of tactile ephemera, moving images, and physical interventions.",
+    tags: ["Experience Design", "By Any Media Necessary"],
+    choices: ["Film & Celluloid montage", "Physical print manifesto"],
+    s: [
+      "Studio portfolio By Any Media Necessary",
+      "Media convergence experiment notes"
+    ]
+  },
+  {
+    id: 7,
+    e: "🔧",
+    t: "Rajat",
+    p: "Reclaiming Repair & GridSkip",
+    q: "If you could open every part of one device you own, what would you reclaim first?",
+    th: ["Analog futures", "Communication", "Hardware Sovereignty"],
+    d: "Reclaiming Repair interrogates who holds ultimate power over the objects we own, how much sovereignty we have conceded to closed corporate hardware ecosystems, and how the right to repair directly determines our right to communicate freely. GridSkip is a bespoke, open-build mesh communicator functioning independent of the global telecommunications grid.",
+    tags: ["Experience Design", "Open Hardware"],
+    choices: ["Crack open the sealed chassis", "Build an autonomous mesh node"],
+    s: [
+      "Reclaiming Repair booklet & manifesto",
+      "GridSkip working communicator video",
+      "Process documentation & schematic teardown"
+    ]
+  },
+  {
+    id: 8,
+    e: "🪞",
+    t: "Haniya Nazneen",
+    p: "Mirror, Mirror on the Wall",
+    q: "What does the mirror show that text can't describe?",
+    th: ["Experience Design", "Phenomenology", "Perception"],
+    d: "An intimate video and spatial process archive documenting the visceral dissonance of the mirror. It asserts that encounter must precede explanation: looking directly into an interactive reflective surface exposes truths that linguistic documentation invariably flattens.",
+    tags: ["Experience Design", "Phenomenology"],
+    choices: ["Gaze into the reflective distortion", "Demand written explanation"],
+    s: [
+      "Brief documentation of the project",
+      "Video of the interactive piece (YouTube archive)"
+    ]
+  },
+  {
+    id: 9,
+    e: "📱",
+    t: "Misri Bhagat",
+    p: "Distraction Hook: Physical Attention Interrupter",
+    q: "What last pulled your attention away, and did you notice the moment?",
+    th: ["Experience Design", "Attention Economies", "Material Feedback"],
+    d: "Distraction Hook is an augmented phone cradle designed to capture the microscopic, involuntary instant when a digital ping kidnaps our presence. Equipped with proximity sensors, luminous indicators, and buzzers, it does not moralize screen addiction; it renders the invisible gravity of distraction tactile and audible in three dimensions.",
+    tags: ["Experience Design", "By Any Media Necessary"],
+    choices: ["Yield to the vibrating hook", "Hold still and let the ping fade"],
+    s: [
+      "Process documentation & electronics iterations",
+      "Distraction Hook working video demonstration"
+    ]
+  },
+  {
+    id: 10,
+    e: "🖼️",
+    t: "Moulik Nanda",
+    p: "The Poster as Process Artifact",
+    q: "If a poster had to carry a whole process, what would it leave out?",
+    th: ["Experience Design", "Transmedia Assembly"],
+    d: "Challenging the sanitized finality of gallery posters by embedding the messy, discarded iterations, failed experiments, and cognitive sketches directly into the primary visual plane.",
+    tags: ["Experience Design", "By Any Media Necessary"],
+    choices: ["Showcase the polished result", "Expose the messy failed sketches"],
+    s: [
+      "Process documentation",
+      "Final product manifesto poster"
+    ]
+  }
+];
+
+/* Precomputed Combinatorial Synthesis Pairings */
+const SYNTHESIS_MATRIX = [
+  {
+    pair: [5, 1], // Gouri + Nikkon
+    title: "Biometric Forgery & The Analogue Underworld",
+    desc: "When facial scryers and physiognomy profiling machines govern citizenship, untraceable human handwriting becomes an encrypted counter-currency traded in biometric shadow markets."
+  },
+  {
+    pair: [0, 9], // Aabha + Misri
+    title: "Solarpunk Acoustic Attunement",
+    desc: "By transforming phone notification buzzers into acoustic transducers, the community tunes away from corporate pings and listens closely to the forest fillámend."
+  },
+  {
+    pair: [7, 2], // Rajat + Ishita
+    title: "Open-Source Cognitive Memory Hardware",
+    desc: "Building user-repairable memory storage drives where citizens can solder and de-fragment their own traumatic recollections without proprietary cloud DRM."
+  },
+  {
+    pair: [5, 8], // Gouri + Haniya
+    title: "The Double Mirror Paradox",
+    desc: "The clinical, quantifying gaze of algorithmic biometric measurement violently collides with the internal phenomenological reflection of human self-perception."
+  },
+  {
+    pair: [1, 7], // Nikkon + Rajat
+    title: "The GridSkip Scribe Terminal",
+    desc: "An entirely decentralized, screenless mesh communication station that transmits physical pen strokes across radio waves without telecommunication surveillance."
+  },
+  {
+    pair: [0, 7], // Aabha + Rajat
+    title: "The Reclaimed Solarpunk Receiver",
+    desc: "Hand-assembled hardware kitbashed from electronic scrap, dedicated solely to harvesting the analogue acoustics of decaying ecosystems."
+  }
+];
+
+/* Master Themes & Thread Clusters */
+const THEMES = {
+  "Analog futures": {
+    desc: "Relinquishing digital reliance in favor of tactile, irregular, and low-fidelity human technologies.",
+    projects: [0, 1, 7]
+  },
+  "Surveillance": {
+    desc: "Interrogating the institutional, algorithmic, and optical machinery that watches, profiles, and sorts human beings.",
+    projects: [1, 5]
+  },
+  "Communication": {
+    desc: "Redesigning interpersonal transmission when institutional networks are compromised or over-automated.",
+    projects: [1, 7]
+  },
+  "Ecological Sensing": {
+    desc: "Deep listening, biosensing, and living systems that supersede computational infrastructure.",
+    projects: [0, 3, 4]
+  },
+  "Attention & Perception": {
+    desc: "Making visible the subtle cognitive currents, distractions, and sensory phenomena that modern tech masks.",
+    projects: [8, 9]
+  }
+};
+
+/* ==========================================================================
+   2. GENERATIVE WEB AUDIO ENGINE (ZERO EXTERNAL DEPENDENCIES)
+   ========================================================================== */
+class OrchardAudioEngine {
+  constructor() {
+    this.ctx = null;
+    this.enabled = true;
+    this.windNode = null;
+    // Harmonic Pentatonic Scale in G Major
+    this.pitches = [392.00, 440.00, 493.88, 587.33, 659.25, 783.99, 880.00, 987.77, 1174.66, 1318.51, 1567.98];
+  }
+
+  init() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AudioCtx();
+      this.startAmbientWind();
+    }
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  }
+
+  startAmbientWind() {
+    if (!this.ctx || this.windNode) return;
+    try {
+      const bufferSize = this.ctx.sampleRate * 2;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      let lastOut = 0.0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        data[i] = (lastOut + (0.02 * white)) / 1.02;
+        lastOut = data[i];
+        data[i] *= 3.5;
+      }
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = buffer;
+      noise.loop = true;
+
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(320, this.ctx.currentTime);
+
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(this.enabled ? 0.04 : 0, this.ctx.currentTime);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+      noise.start();
+
+      this.windGain = gain;
+      this.windNode = noise;
+    } catch(e) {
+      console.warn("Audio init warning:", e);
+    }
+  }
+
+  toggle(force) {
+    this.enabled = force !== undefined ? force : !this.enabled;
+    if (this.windGain && this.ctx) {
+      this.windGain.gain.setValueAtTime(this.enabled ? 0.04 : 0, this.ctx.currentTime);
+    }
+    return this.enabled;
+  }
+
+  playApplePluck(id) {
+    if (!this.enabled || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const freq = this.pitches[id % this.pitches.length];
+
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq * 1.5, now);
+      osc.frequency.exponentialRampToValueAtTime(freq, now + 0.08);
+
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.42);
+    } catch(e) {}
+  }
+
+  playBonk(intensity = 1) {
+    if (!this.enabled || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      // Resonant Woodblock bonk
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(420 * intensity, now);
+      osc.frequency.exponentialRampToValueAtTime(80, now + 0.22);
+
+      gain.gain.setValueAtTime(0.28, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.26);
+    } catch(e) {}
+  }
+
+  playEureka() {
+    if (!this.enabled || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const notes = [587.33, 739.99, 880.00, 1174.66]; // D Major Triad
+      notes.forEach((freq, idx) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.09);
+
+        gain.gain.setValueAtTime(0.12, now + idx * 0.09);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.09 + 0.6);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now + idx * 0.09);
+        osc.stop(now + idx * 0.09 + 0.65);
+      });
+    } catch(e) {}
+  }
+
+  playRustle() {
+    if (!this.enabled || !this.ctx) return;
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(140, now);
+      osc.frequency.linearRampToValueAtTime(80, now + 0.5);
+
+      gain.gain.setValueAtTime(0.15, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.52);
+    } catch(e) {}
+  }
+}
+
+const audio = new OrchardAudioEngine();
+
+/* ==========================================================================
+   3. VERLET & RIGID-BODY 2D/2.5D PHYSICS SIMULATION
+   ========================================================================== */
+const canvas = document.getElementById("physicsCanvas");
+const ctx = canvas.getContext("2d");
+const pCanvas = document.getElementById("particleCanvas");
+const pCtx = pCanvas.getContext("2d");
+const sCanvas = document.getElementById("sunbeamCanvas");
+const sCtx = sCanvas.getContext("2d");
+
+let W = window.innerWidth;
+let H = window.innerHeight;
+
+function resizeCanvases() {
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W;
+  canvas.height = H;
+  pCanvas.width = W;
+  pCanvas.height = H;
+  sCanvas.width = W;
+  sCanvas.height = H;
+}
+window.addEventListener("resize", resizeCanvases);
+resizeCanvases();
+
+// Physical Parameters
+let G_CONST = 980; // pixels / sec^2
+let G_MODE = "earth";
+let WIND_X = 15;
+let RESTITUTION = 0.55;
+let BLACK_HOLE = false;
+let mouseX = W / 2;
+let mouseY = H / 2;
+let isMouseDown = false;
+let draggedApple = null;
+
+// Apple hanging anchor points (proportional to canopy)
+const APPLE_ANCHORS = [
+  { fx: 0.22, fy: 0.24 }, // Aabha
+  { fx: 0.28, fy: 0.17 }, // Nikkon
+  { fx: 0.35, fy: 0.13 }, // Ishita
+  { fx: 0.42, fy: 0.19 }, // Medha
+  { fx: 0.49, fy: 0.14 }, // Iniya
+  { fx: 0.45, fy: 0.31 }, // Gouri (center-branch)
+  { fx: 0.54, fy: 0.22 }, // Sudarsinii
+  { fx: 0.59, fy: 0.15 }, // Rajat
+  { fx: 0.65, fy: 0.25 }, // Haniya
+  { fx: 0.72, fy: 0.18 }, // Misri
+  { fx: 0.76, fy: 0.29 }  // Moulik
+];
+
+class PhysicalApple {
+  constructor(project, index) {
+    this.project = project;
+    this.index = index;
+    this.radius = 22;
+    this.isAttached = true;
+    this.stemLength = 36;
+    this.stemAngle = 0;
+    this.stemOmega = 0;
+
+    // Hanging Anchor
+    this.anchorX = APPLE_ANCHORS[index].fx * W;
+    this.anchorY = APPLE_ANCHORS[index].fy * H;
+
+    // Body state
+    this.x = this.anchorX;
+    this.y = this.anchorY + this.stemLength;
+    this.vx = 0;
+    this.vy = 0;
+    this.rotation = 0;
+    this.vRot = 0;
+    this.mass = 1.0;
+
+    this.isHovered = false;
+    this.isExplored = false;
+    this.hasBonked = false;
+    this.glowColor = project.id === 5 ? "rgba(244, 196, 48, 0.9)" : "rgba(214, 40, 57, 0.75)";
+  }
+
+  updateAnchor() {
+    this.anchorX = APPLE_ANCHORS[this.index].fx * W;
+    this.anchorY = APPLE_ANCHORS[this.index].fy * H;
+    if (this.isAttached) {
+      this.x = this.anchorX + Math.sin(this.stemAngle) * this.stemLength;
+      this.y = this.anchorY + Math.cos(this.stemAngle) * this.stemLength;
+    }
+  }
+
+  pluck(impulseX = 0, impulseY = 0) {
+    if (!this.isAttached) return;
+    this.isAttached = false;
+    this.vx = impulseX + (Math.random() - 0.5) * 40;
+    this.vy = impulseY + 20;
+    this.vRot = (Math.random() - 0.5) * 6;
+    audio.playApplePluck(this.index);
+    createTwigParticles(this.anchorX, this.anchorY + 8);
+    showNewtonThought(`An apple drops: "${this.project.p}"`);
+  }
+
+  update(dt) {
+    if (this.isAttached) {
+      // Natural pendulum harmonic oscillation with wind force
+      const windForce = WIND_X * 0.0006;
+      const gravityPendulum = (G_CONST / this.stemLength) * 0.0008;
+      const damping = 0.985;
+
+      const torque = -Math.sin(this.stemAngle) * gravityPendulum + windForce;
+      this.stemOmega += torque;
+      this.stemOmega *= damping;
+      this.stemAngle += this.stemOmega;
+
+      this.x = this.anchorX + Math.sin(this.stemAngle) * this.stemLength;
+      this.y = this.anchorY + Math.cos(this.stemAngle) * this.stemLength;
+      this.rotation = this.stemAngle * 0.8;
+      return;
+    }
+
+    if (draggedApple === this) {
+      // Follow cursor smoothly
+      this.vx = (mouseX - this.x) * 16;
+      this.vy = (mouseY - this.y) * 16;
+      this.x = mouseX;
+      this.y = mouseY;
+      return;
+    }
+
+    // Free ballistic integration
+    let gx = 0;
+    let gy = G_CONST;
+
+    // Black Hole gravity well
+    if (BLACK_HOLE) {
+      const dx = mouseX - this.x;
+      const dy = mouseY - this.y;
+      const dist = Math.hypot(dx, dy) + 40;
+      const force = 900000 / (dist * dist);
+      gx += (dx / dist) * force;
+      gy += (dy / dist) * force;
+    }
+
+    // Aerodynamic Drag & Wind
+    this.vx += (WIND_X * 8 - this.vx * 0.4) * dt;
+    this.vy += gy * dt;
+    this.vx += gx * dt;
+
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.rotation += this.vRot * dt;
+
+    // Collision with Rolling Grassy Ground
+    const groundLevel = H * 0.88 - Math.sin(this.x * 0.003) * 25;
+    if (this.y + this.radius >= groundLevel) {
+      this.y = groundLevel - this.radius;
+      if (Math.abs(this.vy) > 60) {
+        audio.playBonk(0.6);
+        createGrassDust(this.x, this.y + this.radius);
+      }
+      this.vy = -this.vy * RESTITUTION;
+      this.vx *= 0.85; // grass rolling friction
+      this.vRot *= 0.82;
+      if (Math.abs(this.vy) < 18) this.vy = 0;
+    }
+
+    // Collision with Left/Right Walls
+    if (this.x - this.radius < 0) {
+      this.x = this.radius;
+      this.vx = -this.vx * RESTITUTION;
+    } else if (this.x + this.radius > W) {
+      this.x = W - this.radius;
+      this.vx = -this.vx * RESTITUTION;
+    }
+
+    // Newton Character Head Bonk Detector
+    // Newton sits roughly at x: 0.47*W, y: 0.74*H
+    const newtonHeadX = W * 0.485;
+    const newtonHeadY = H * 0.74;
+    const distToNewton = Math.hypot(this.x - newtonHeadX, this.y - newtonHeadY);
+
+    if (distToNewton < 46 && !this.hasBonked && Math.abs(this.vy) > 40) {
+      this.hasBonked = true;
+      this.vy = -Math.abs(this.vy) * 0.65;
+      this.vx = (this.x < newtonHeadX ? -1 : 1) * (90 + Math.random() * 80);
+      triggerNewtonBonk(this);
+    }
+  }
+
+  draw(c) {
+    c.save();
+    c.translate(this.x, this.y);
+    c.rotate(this.rotation);
+
+    // Stem
+    c.beginPath();
+    c.moveTo(0, -this.radius);
+    c.quadraticCurveTo(4, -this.radius - 12, 8, -this.radius - 18);
+    c.strokeStyle = "#4a2c14";
+    c.lineWidth = 3.5;
+    c.lineCap = "round";
+    c.stroke();
+
+    // Leaf on stem
+    c.beginPath();
+    c.ellipse(10, -this.radius - 16, 8, 4, Math.PI / 4, 0, Math.PI * 2);
+    c.fillStyle = "#489d3b";
+    c.fill();
+    c.strokeStyle = "#2e6824";
+    c.lineWidth = 1;
+    c.stroke();
+
+    // Apple Body Radial Gradient
+    const grad = c.createRadialGradient(-6, -6, 2, 0, 0, this.radius);
+    if (this.project.id === 5) { // Gouri's Gold Apple of Biometrics
+      grad.addColorStop(0, "#fff59d");
+      grad.addColorStop(0.5, "#fbc02d");
+      grad.addColorStop(1, "#c49000");
+    } else {
+      grad.addColorStop(0, "#ff8080");
+      grad.addColorStop(0.65, "#d62839");
+      grad.addColorStop(1, "#780016");
+    }
+
+    // Outer Glow if Hovered or Explored
+    if (this.isHovered || this.project.id === 5) {
+      c.shadowColor = this.glowColor;
+      c.shadowBlur = 18;
+    }
+
+    // Main Apple Silhouette
+    c.beginPath();
+    c.arc(-7, 0, this.radius - 1, 0, Math.PI * 2);
+    c.arc(7, 0, this.radius - 1, 0, Math.PI * 2);
+    c.arc(0, 7, this.radius - 1, 0, Math.PI * 2);
+    c.fillStyle = grad;
+    c.fill();
+    c.shadowBlur = 0;
+
+    // Specular Highlight
+    c.beginPath();
+    c.ellipse(-7, -8, 7, 3.5, -Math.PI / 5, 0, Math.PI * 2);
+    c.fillStyle = "rgba(255, 255, 255, 0.45)";
+    c.fill();
+
+    // Project Symbol / Emoji inside Apple
+    c.font = "14px 'Space Mono', sans-serif";
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    c.fillText(this.project.e, 0, 3);
+
+    c.restore();
+
+    // Draw Hanging Stem to Anchor if Attached
+    if (this.isAttached) {
+      c.save();
+      c.beginPath();
+      c.moveTo(this.anchorX, this.anchorY);
+      c.lineTo(this.x, this.y - this.radius);
+      c.strokeStyle = "#5a3a1f";
+      c.lineWidth = 2.5;
+      c.stroke();
+      c.restore();
+    }
+  }
+}
+
+// Particle System for Eureka, Leaves, Sparks, Twigs
+const particles = [];
+class Particle {
+  constructor(x, y, vx, vy, color, size, life, type = "spark", text = "") {
+    this.x = x;
+    this.y = y;
+    this.vx = vx;
+    this.vy = vy;
+    this.color = color;
+    this.size = size;
+    this.life = life;
+    this.maxLife = life;
+    this.type = type;
+    this.text = text;
+    this.rot = Math.random() * Math.PI * 2;
+  }
+
+  update(dt) {
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.life -= dt;
+    if (this.type === "leaf") {
+      this.vx += (WIND_X * 2 - this.vx * 0.3) * dt;
+      this.vy += 30 * dt;
+      this.rot += 1.5 * dt;
+    } else {
+      this.vy += 200 * dt;
+    }
+  }
+
+  draw(c) {
+    const alpha = Math.max(0, this.life / this.maxLife);
+    c.save();
+    c.globalAlpha = alpha;
+    c.translate(this.x, this.y);
+    c.rotate(this.rot);
+
+    if (this.type === "text") {
+      c.font = `bold ${this.size}px 'Cinzel', serif`;
+      c.fillStyle = this.color;
+      c.fillText(this.text, 0, 0);
+    } else if (this.type === "leaf") {
+      c.beginPath();
+      c.ellipse(0, 0, this.size, this.size * 0.45, 0, 0, Math.PI * 2);
+      c.fillStyle = this.color;
+      c.fill();
+    } else {
+      c.beginPath();
+      c.arc(0, 0, this.size, 0, Math.PI * 2);
+      c.fillStyle = this.color;
+      c.fill();
+    }
+    c.restore();
+  }
+}
+
+function createTwigParticles(x, y) {
+  for (let i = 0; i < 7; i++) {
+    particles.push(new Particle(
+      x, y,
+      (Math.random() - 0.5) * 80,
+      -Math.random() * 80,
+      "#5a3a1f",
+      3,
+      0.6,
+      "twig"
+    ));
+  }
+}
+
+function createGrassDust(x, y) {
+  for (let i = 0; i < 9; i++) {
+    particles.push(new Particle(
+      x, y,
+      (Math.random() - 0.5) * 120,
+      -Math.random() * 60 - 20,
+      "#5ba34e",
+      2.5,
+      0.5,
+      "leaf"
+    ));
+  }
+}
+
+function createEurekaBursts(x, y) {
+  const notations = ["F = G(m₁m₂)/r²", "EUREKA!", "ACTIO = REACTIO", "GRAVITAS!", "✦ ✦ ✦", "1687"];
+  notations.forEach((txt, i) => {
+    const angle = (i / notations.length) * Math.PI * 2;
+    particles.push(new Particle(
+      x, y,
+      Math.cos(angle) * 100,
+      Math.sin(angle) * 80 - 60,
+      "#f4c430",
+      16,
+      1.4,
+      "text",
+      txt
+    ));
+  });
+
+  for (let i = 0; i < 35; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 40 + Math.random() * 220;
+    particles.push(new Particle(
+      x, y,
+      Math.cos(angle) * speed,
+      Math.sin(angle) * speed - 60,
+      ["#f4c430", "#ff4d6d", "#40ffb4", "#fff"][Math.floor(Math.random() * 4)],
+      3 + Math.random() * 4,
+      1.1,
+      "spark"
+    ));
+  }
+}
+
+/* Initialize Physical Apples */
+let apples = [];
+function spawnApples() {
+  apples = PROJECTS.map((proj, i) => new PhysicalApple(proj, i));
+}
+spawnApples();
+
+/* ==========================================================================
+   4. NEWTON CHARACTER DYNAMICS & EUREKA BONK
+   ========================================================================== */
+const newtonHeadEl = document.getElementById("newtonHead");
+const newtonPupilL = document.getElementById("newtonPupilL");
+const newtonPupilR = document.getElementById("newtonPupilR");
+const newtonMouth = document.getElementById("newtonMouth");
+const newtonSpeech = document.getElementById("newtonSpeech");
+
+function updateNewtonGaze() {
+  if (!newtonPupilL) return;
+  // Eye tracking towards mouse or active falling apple
+  const headPos = { x: W * 0.485, y: H * 0.74 };
+  const targetX = draggedApple ? draggedApple.x : mouseX;
+  const targetY = draggedApple ? draggedApple.y : mouseY;
+  const dx = (targetX - headPos.x) / W;
+  const dy = (targetY - headPos.y) / H;
+
+  newtonPupilL.setAttribute("cx", (57 + dx * 3).toFixed(1));
+  newtonPupilL.setAttribute("cy", (17 + dy * 2).toFixed(1));
+  newtonPupilR.setAttribute("cx", (67 + dx * 3).toFixed(1));
+  newtonPupilR.setAttribute("cy", (17 + dy * 2).toFixed(1));
+}
+
+let speechTimer;
+function showNewtonThought(text) {
+  if (!newtonSpeech) return;
+  newtonSpeech.textContent = text;
+  newtonSpeech.style.left = `${W * 0.49}px`;
+  newtonSpeech.style.top = `${H * 0.67}px`;
+  newtonSpeech.classList.add("active");
+  clearTimeout(speechTimer);
+  speechTimer = setTimeout(() => {
+    newtonSpeech.classList.remove("active");
+  }, 4500);
+}
+
+function triggerNewtonBonk(apple) {
+  audio.playBonk(1.4);
+  audio.playEureka();
+  createEurekaBursts(W * 0.485, H * 0.73);
+
+  // Wobbly Head Shake Animation
+  if (newtonHeadEl) {
+    newtonHeadEl.style.transformOrigin = "60px 30px";
+    newtonHeadEl.animate([
+      { transform: "rotate(0deg)" },
+      { transform: "rotate(-18deg) translateY(-8px)" },
+      { transform: "rotate(14deg)" },
+      { transform: "rotate(-8deg)" },
+      { transform: "rotate(0deg)" }
+    ], { duration: 600, easing: "cubic-bezier(0.18, 0.89, 0.32, 1.28)" });
+  }
+
+  showNewtonThought(`"BONK! Eureka! Inquiries on ${apple.project.t}'s future!"`);
+  toast(`Bonked Sir Isaac with Apple #${apple.index + 1}: ${apple.project.t}`);
+
+  setTimeout(() => {
+    openDossierModal(apple.project);
+  }, 750);
+}
+
+/* ==========================================================================
+   5. SPECULATIVE DOSSIER MODAL LOGIC
+   ========================================================================== */
+const modalOverlay = document.getElementById("dossierModal");
+const modalAuthor = document.getElementById("modalAuthor");
+const modalProject = document.getElementById("modalProject");
+const modalEmoji = document.getElementById("modalEmoji");
+const modalQuestion = document.getElementById("modalQuestion");
+const modalDesc = document.getElementById("modalDesc");
+const modalDeliverablesList = document.getElementById("modalDeliverablesList");
+const modalTags = document.getElementById("modalTags");
+const choiceContainer = document.getElementById("choiceContainer");
+const modalCloseBtn = document.getElementById("modalCloseBtn");
+
+const exploredSet = new Set();
+
+function openDossierModal(project) {
+  exploredSet.add(project.id);
+  updateStatsAndThreads();
+
+  modalAuthor.textContent = project.t;
+  modalProject.textContent = project.p || "Speculative Artifact";
+  modalEmoji.textContent = project.e;
+  modalQuestion.textContent = `"${project.q}"`;
+  modalDesc.textContent = project.d;
+
+  // Render Choices
+  choiceContainer.innerHTML = "";
+  (project.choices || ["Examine further", "File into archive"]).forEach((ch, idx) => {
+    const btn = document.createElement("button");
+    btn.className = "choice-btn";
+    btn.textContent = `${ch} →`;
+    btn.onclick = () => {
+      document.querySelectorAll(".choice-btn").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      toast(`Perspective logged: "${ch}"`);
+    };
+    choiceContainer.appendChild(btn);
+  });
+
+  // Render Deliverables
+  modalDeliverablesList.innerHTML = "";
+  if (project.s && project.s.length) {
+    project.s.forEach(deliv => {
+      const li = document.createElement("li");
+      li.textContent = deliv;
+      modalDeliverablesList.appendChild(li);
+    });
+    document.getElementById("modalDeliverablesSection").style.display = "block";
+  } else {
+    document.getElementById("modalDeliverablesSection").style.display = "none";
+  }
+
+  // Render Tags
+  modalTags.innerHTML = "";
+  (project.tags || []).forEach(tg => {
+    const sp = document.createElement("span");
+    sp.className = "dossier-tag";
+    sp.textContent = tg;
+    modalTags.appendChild(sp);
+  });
+  (project.th || []).forEach(th => {
+    const sp = document.createElement("span");
+    sp.className = "dossier-tag thread-tag";
+    sp.textContent = `✦ Thread: ${th}`;
+    modalTags.appendChild(sp);
+  });
+
+  modalOverlay.classList.add("open");
+}
+
+modalCloseBtn.onclick = () => modalOverlay.classList.remove("open");
+modalOverlay.onclick = (e) => {
+  if (e.target === modalOverlay) modalOverlay.classList.remove("open");
+};
+
+/* ==========================================================================
+   6. IDEA CRUCIBLE / COMBINATORIAL SYNTHESIS LOGIC
+   ========================================================================== */
+const crucibleDropzone = document.getElementById("crucibleDropzone");
+const slotA = document.getElementById("slotA");
+const slotB = document.getElementById("slotB");
+const synthesisResult = document.getElementById("synthesisResult");
+const synTitle = document.getElementById("synTitle");
+const synDesc = document.getElementById("synDesc");
+
+let crucibleAppleA = null;
+let crucibleAppleB = null;
+
+function checkCrucibleDrop(apple) {
+  // Check if apple is within crucible bounds on top right
+  const rect = crucibleDropzone.getBoundingClientRect();
+  if (
+    apple.x >= rect.left - 20 &&
+    apple.x <= rect.right + 20 &&
+    apple.y >= rect.top - 20 &&
+    apple.y <= rect.bottom + 20
+  ) {
+    if (!crucibleAppleA) {
+      crucibleAppleA = apple;
+      slotA.textContent = apple.project.e;
+      slotA.classList.add("filled");
+      toast(`Added ${apple.project.t} to Crucible Slot A`);
+    } else if (crucibleAppleA !== apple && !crucibleAppleB) {
+      crucibleAppleB = apple;
+      slotB.textContent = apple.project.e;
+      slotB.classList.add("filled");
+      toast(`Added ${apple.project.t} to Crucible Slot B`);
+      executeSynthesis();
+    }
+  }
+}
+
+function executeSynthesis() {
+  if (!crucibleAppleA || !crucibleAppleB) return;
+  audio.playEureka();
+  createEurekaBursts(W - 140, 180);
+
+  const idA = crucibleAppleA.project.id;
+  const idB = crucibleAppleB.project.id;
+
+  const match = SYNTHESIS_MATRIX.find(m =>
+    (m.pair[0] === idA && m.pair[1] === idB) ||
+    (m.pair[0] === idB && m.pair[1] === idA)
+  );
+
+  if (match) {
+    synTitle.textContent = `✦ ${match.title}`;
+    synDesc.textContent = match.desc;
+  } else {
+    synTitle.textContent = `✦ Synthesis of ${crucibleAppleA.project.t} × ${crucibleAppleB.project.t}`;
+    synDesc.textContent = `Connecting "${crucibleAppleA.project.q}" with "${crucibleAppleB.project.q}". An unexplored speculative friction occurs between these two horizons.`;
+  }
+
+  synthesisResult.classList.add("show");
+  crucibleDropzone.classList.add("ready");
+}
+
+crucibleDropzone.onclick = () => {
+  // Reset crucible
+  crucibleAppleA = null;
+  crucibleAppleB = null;
+  slotA.textContent = "?";
+  slotB.textContent = "?";
+  slotA.classList.remove("filled");
+  slotB.classList.remove("filled");
+  synthesisResult.classList.remove("show");
+  crucibleDropzone.classList.remove("ready");
+  toast("Crucible reset. Drag two fallen apples here!");
+};
+
+/* ==========================================================================
+   7. HUD & BUTTON INTERACTIVITY
+   ========================================================================== */
+function toast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 3500);
+}
+
+// Gravity Selector
+document.querySelectorAll(".grav-btn").forEach(btn => {
+  btn.onclick = () => {
+    document.querySelectorAll(".grav-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    G_MODE = btn.dataset.g;
+    const gMap = { earth: 980, moon: 160, jupiter: 2480, zero: 0 };
+    G_CONST = gMap[G_MODE];
+    document.getElementById("gravValDisplay").textContent = `${(G_CONST / 100).toFixed(1)} m/s²`;
+    toast(`Gravitational field aligned to ${G_MODE.toUpperCase()}`);
+    audio.playBonk(0.8);
+  };
+});
+
+// Wind & Restitution Sliders
+document.getElementById("windSlider").oninput = (e) => {
+  WIND_X = parseFloat(e.target.value);
+  document.getElementById("windDisplay").textContent = `${WIND_X.toFixed(1)} km/h`;
+};
+document.getElementById("bounceSlider").oninput = (e) => {
+  RESTITUTION = parseFloat(e.target.value);
+  document.getElementById("bounceDisplay").textContent = RESTITUTION.toFixed(2);
+};
+
+// Shake the Tree Action
+document.getElementById("btnShakeTree").onclick = () => {
+  audio.playRustle();
+  const treeEl = document.getElementById("treeCanopy");
+  if (treeEl) {
+    treeEl.animate([
+      { transform: "rotate(0deg)" },
+      { transform: "rotate(-2.5deg) translate(-10px, 4px)" },
+      { transform: "rotate(3deg) translate(12px, -4px)" },
+      { transform: "rotate(-1.5deg)" },
+      { transform: "rotate(0deg)" }
+    ], { duration: 700, easing: "ease-in-out" });
+  }
+
+  // Release 2 to 3 attached apples
+  const attached = apples.filter(a => a.isAttached);
+  if (attached.length) {
+    const toDrop = attached.sort(() => Math.random() - 0.5).slice(0, Math.min(3, attached.length));
+    toDrop.forEach(a => a.pluck((Math.random() - 0.5) * 80, 50));
+    toast(`The branches shake violently! ${toDrop.length} ideas fall!`);
+  } else {
+    toast("All apples have already fallen. Click Regrow Tree to replenish!");
+  }
+};
+
+// Cascade All Action
+document.getElementById("btnFastFall").onclick = () => {
+  apples.forEach((a, idx) => {
+    setTimeout(() => {
+      if (a.isAttached) a.pluck((Math.random() - 0.5) * 60, 60);
+    }, idx * 100);
+  });
+  toast("Cascading all 11 speculative apples!");
+};
+
+// Black Hole Gravity Well
+document.getElementById("btnBlackHole").onclick = () => {
+  BLACK_HOLE = !BLACK_HOLE;
+  document.getElementById("vortexLabel").textContent = BLACK_HOLE ? "GRAVITY WELL: ACTIVE" : "GRAVITY WELL: OFF";
+  toast(BLACK_HOLE ? "Quantum Gravity Well engaged! Drag cursor to warp spacetime." : "Gravity Well deactivated.");
+  audio.playBonk(BLACK_HOLE ? 1.5 : 0.5);
+};
+
+// Bonk Newton Shortcut
+document.getElementById("btnNewtonBonk").onclick = () => {
+  const target = apples.find(a => a.isAttached) || apples[0];
+  if (target) {
+    target.pluck();
+    target.x = W * 0.485;
+    target.y = H * 0.35;
+    target.vx = 0;
+    target.vy = 400;
+  }
+};
+
+// Regrow Tree
+document.getElementById("btnRegrow").onclick = () => {
+  audio.playEureka();
+  spawnApples();
+  crucibleDropzone.click();
+  toast("The Tree of Knowledge blossoms anew!");
+};
+
+// Audio Toggle
+document.getElementById("btnAudio").onclick = () => {
+  audio.init();
+  const isOn = audio.toggle();
+  document.getElementById("btnAudio").innerHTML = isOn ? "🔊 <span>Sound: ON</span>" : "🔇 <span>Sound: OFF</span>";
+  toast(isOn ? "Soundscape enabled" : "Soundscape muted");
+};
+
+// Atmosphere Themes Cycle
+const THEMES_LIST = ["golden", "twilight", "midnight", "aurora"];
+const THEME_NAMES = {
+  golden: "Golden Hour",
+  twilight: "Twilight Solarpunk",
+  midnight: "Celestial Midnight",
+  aurora: "Alchemical Aurora"
+};
+let curThemeIdx = 0;
+document.getElementById("btnTheme").onclick = () => {
+  curThemeIdx = (curThemeIdx + 1) % THEMES_LIST.length;
+  const th = THEMES_LIST[curThemeIdx];
+  document.body.setAttribute("data-theme", th);
+  document.getElementById("themeName").textContent = THEME_NAMES[th];
+  toast(`Atmosphere shifted to ${THEME_NAMES[th]}`);
+  audio.playBonk(0.9);
+};
+
+// Constellation Web Drawer
+const constellationDrawer = document.getElementById("constellationDrawer");
+document.getElementById("btnConstellation").onclick = () => {
+  renderConstellationDrawer();
+  constellationDrawer.classList.add("open");
+};
+document.getElementById("closeDrawerBtn").onclick = () => {
+  constellationDrawer.classList.remove("open");
+};
+
+function renderConstellationDrawer() {
+  const grid = document.getElementById("threadsGrid");
+  grid.innerHTML = "";
+
+  Object.entries(THEMES).forEach(([tName, tObj]) => {
+    const card = document.createElement("div");
+    card.className = "thread-card";
+    const exploredInThread = tObj.projects.filter(pid => exploredSet.has(pid)).length;
+    if (exploredInThread === tObj.projects.length) card.classList.add("active");
+
+    card.innerHTML = `
+      <div class="thread-card-title">
+        <span>${tName}</span>
+        <span>${exploredInThread}/${tObj.projects.length}</span>
+      </div>
+      <div class="thread-card-desc">${tObj.desc}</div>
+      <div class="thread-authors">
+        ${tObj.projects.map(pid => `
+          <span class="thread-author-chip ${exploredSet.has(pid) ? 'explored' : ''}">
+            ${PROJECTS[pid].e} ${PROJECTS[pid].t}
+          </span>
+        `).join("")}
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+function updateStatsAndThreads() {
+  document.getElementById("harvestCount").textContent = `${exploredSet.size} / 11`;
+
+  let completedThreads = 0;
+  Object.values(THEMES).forEach(t => {
+    if (t.projects.every(pid => exploredSet.has(pid))) completedThreads++;
+  });
+  document.getElementById("threadsBadge").textContent = `${completedThreads}/5`;
+}
+
+/* ==========================================================================
+   8. MOUSE & TOUCH DRAGGING ENGINE
+   ========================================================================== */
+function getEventPos(e) {
+  if (e.touches && e.touches.length) {
+    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }
+  return { x: e.clientX, y: e.clientY };
+}
+
+window.addEventListener("mousedown", onPointerDown);
+window.addEventListener("touchstart", onPointerDown, { passive: false });
+
+function onPointerDown(e) {
+  audio.init();
+  const pos = getEventPos(e);
+  mouseX = pos.x;
+  mouseY = pos.y;
+  isMouseDown = true;
+
+  // Check if clicked an apple
+  for (let a of apples) {
+    const dist = Math.hypot(mouseX - a.x, mouseY - a.y);
+    if (dist < a.radius + 12) {
+      if (a.isAttached) {
+        a.pluck();
+      }
+      draggedApple = a;
+      e.preventDefault();
+      break;
+    }
+  }
+}
+
+window.addEventListener("mousemove", onPointerMove);
+window.addEventListener("touchmove", onPointerMove, { passive: false });
+
+function onPointerMove(e) {
+  const pos = getEventPos(e);
+  mouseX = pos.x;
+  mouseY = pos.y;
+
+  // Hover detection
+  apples.forEach(a => {
+    const dist = Math.hypot(mouseX - a.x, mouseY - a.y);
+    a.isHovered = dist < a.radius + 10;
+  });
+}
+
+window.addEventListener("mouseup", onPointerUp);
+window.addEventListener("touchend", onPointerUp);
+
+function onPointerUp() {
+  isMouseDown = false;
+  if (draggedApple) {
+    checkCrucibleDrop(draggedApple);
+    draggedApple = null;
+  }
+}
+
+/* ==========================================================================
+   9. MAIN SIMULATION RENDER LOOP (60 FPS)
+   ========================================================================== */
+let lastTime = performance.now();
+
+function simulationLoop(now) {
+  const dt = Math.min((now - lastTime) / 1000, 0.05);
+  lastTime = now;
+
+  // Clear Canvases
+  ctx.clearRect(0, 0, W, H);
+  pCtx.clearRect(0, 0, W, H);
+
+  // Draw Speculative Threads connecting explored apples
+  ctx.save();
+  ctx.lineWidth = 1.5;
+  Object.values(THEMES).forEach(th => {
+    const points = th.projects
+      .map(pid => apples[pid])
+      .filter(a => a && !a.isAttached);
+
+    if (points.length >= 2) {
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+      ctx.strokeStyle = "rgba(244, 196, 48, 0.28)";
+      ctx.setLineDash([4, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  });
+  ctx.restore();
+
+  // Update & Draw Physical Apples
+  apples.forEach(a => {
+    a.updateAnchor();
+    a.update(dt);
+    a.draw(ctx);
+  });
+
+  // Update & Draw Particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.update(dt);
+    p.draw(pCtx);
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+
+  // Newton head gaze update
+  updateNewtonGaze();
+
+  requestAnimationFrame(simulationLoop);
+}
+
+requestAnimationFrame(simulationLoop);
+
+// Keyboard accessibility
+window.addEventListener("keydown", (e) => {
+  if (e.key === " " || e.key === "Enter") {
+    const attached = apples.filter(a => a.isAttached);
+    if (attached.length) attached[0].pluck();
+  }
+  if (e.key === "Escape") {
+    modalOverlay.classList.remove("open");
+    constellationDrawer.classList.remove("open");
+  }
+});
+</script>
+</body>
+</html>
